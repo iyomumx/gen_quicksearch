@@ -115,6 +115,7 @@ void PluginWindow::OnDeactivated(EventArgs^ e)
 	this->Hide();
 }
 
+//处理txtFilter中的Enter事件
 void PluginWindow::OnKeyUp(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e)
 {
 	if (e->Key == System::Windows::Input::Key::Enter)
@@ -125,7 +126,7 @@ void PluginWindow::OnKeyUp(System::Object ^sender, System::Windows::Input::KeyEv
 	}
 }
 
-
+//处理lstPlaylist中的按键事件
 void PluginWindow::OnKeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e)
 {
 	if (e->Key == System::Windows::Input::Key::Enter)
@@ -140,6 +141,7 @@ void PluginWindow::OnKeyDown(System::Object ^sender, System::Windows::Input::Key
 			PlaylistView->MoveCurrentToFirst();
 		}
 		lstPlaylist->SelectedItem = PlaylistView->CurrentItem;
+		lstPlaylist->ScrollIntoView(lstPlaylist->SelectedItem);
 		e->Handled = true;
 	}
 	else if (e->Key == System::Windows::Input::Key::Q)
@@ -149,14 +151,14 @@ void PluginWindow::OnKeyDown(System::Object ^sender, System::Windows::Input::Key
 	}
 }
 
-
+//鼠标双击时，播放选定项。由于鼠标第一次按下会选中其位置所在项，此处不确保选中。
 void PluginWindow::OnMouseDoubleClick(System::Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e)
 {
 	PlayIndex(Playlist->IndexOf((Track^)lstPlaylist->SelectedItem));
 	this->Hide();
 }
 
-
+//焦点切换到lstPlaylist时的事件处理
 void PluginWindow::OnGotFocus(System::Object ^sender, System::Windows::RoutedEventArgs ^e)
 {
 	if (lstPlaylist->SelectedIndex == -1)
@@ -167,6 +169,7 @@ void PluginWindow::OnGotFocus(System::Object ^sender, System::Windows::RoutedEve
 		}
 		lstPlaylist->SelectedItem = PlaylistView->CurrentItem;
 	}
+	lstPlaylist->ScrollIntoView(lstPlaylist->SelectedItem);
 }
 
 void PluginWindow::ShowAndFocus()
