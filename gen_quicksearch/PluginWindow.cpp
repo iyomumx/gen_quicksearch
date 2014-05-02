@@ -6,10 +6,9 @@ PluginWindow::PluginWindow()
 	InitializeComponent();
 }
 
-void PluginWindow::Init(HWND handle)
+void PluginWindow::Init()
 {
 	MainWindow = gcnew PluginWindow();
-	MainWindow->MainHandle = handle;
 	Application ^ app = Application::Current;
 	if (app == nullptr)
 	{
@@ -29,6 +28,8 @@ void PluginWindow::InitializeComponent()
 	this->Visibility = System::Windows::Visibility::Hidden;
 	this->WindowStyle = System::Windows::WindowStyle::None;
 	this->ResizeMode = System::Windows::ResizeMode::NoResize;
+
+	this->IsClosing = false;
 	//子控件
 	Grid ^ grid = gcnew Grid();
 	this->Content = grid;
@@ -48,7 +49,7 @@ void PluginWindow::InitializeComponent()
 	grid->Children->Add(txtFilter);
 	txtFilter->SetValue(Grid::RowProperty, (Object^)0);
 	txtFilter->Margin = *gcnew Thickness(1);
-	//txtFilter->Height = System::Double::NaN;
+	txtFilter->Height = txtFilter->FontSize + 10;
 	txtFilter->TextWrapping = TextWrapping::NoWrap;
 	txtFilter->TabIndex = 0;
 	txtFilter->TextChanged += gcnew TextChangedEventHandler(this, &PluginWindow::OnTextChanged);
@@ -75,13 +76,9 @@ void PluginWindow::InitializeComponent()
 	{
 		QueueApi = NULL;
 	}
+	SAFcallback = gcnew Action(this, &PluginWindow::ShowAndFocus);
+	RLcallback = gcnew Action(this, &PluginWindow::RefreshList);
 }
-
-void PluginWindow::OnTextChanged(System::Object ^sender, TextChangedEventArgs ^e)
-{
-	PlaylistView->Refresh();
-}
-
 
 bool PluginWindow::Filter(Object^ obj)
 {
@@ -89,15 +86,9 @@ bool PluginWindow::Filter(Object^ obj)
 	{
 		Track^ t = (Track^)obj;
 		return	t->Filename->ToUpper()->Contains(txtFilter->Text->ToUpper()) ||
-				t->Title->ToUpper()->Contains(txtFilter->Text->ToUpper());
+			t->Title->ToUpper()->Contains(txtFilter->Text->ToUpper());
 	}
 	return obj->ToString()->Contains(txtFilter->Text);
-}
-
-
-void PluginWindow::Invoke(Action^ callback)
-{
-	this->Dispatcher->Invoke(System::Windows::Threading::DispatcherPriority::Normal, callback);
 }
 
 void PluginWindow::RefreshList()
@@ -110,34 +101,59 @@ void PluginWindow::RefreshList()
 	}
 }
 
+void PluginWindow::OnSourceInitialized(EventArgs^ e)
+{
+	Window::OnSourceInitialized(e);
+	Visibility = System::Windows::Visibility::Collapsed;
+}
+
 void PluginWindow::OnDeactivated(EventArgs^ e)
 {
-	this->Hide();
+	Window::OnActivated(e);
+	this->Visibility = System::Windows::Visibility::Collapsed;
+}
+
+void PluginWindow::OnClosing(System::ComponentModel::CancelEventArgs ^e)
+{
+	Window::OnClosing(e);
+	if (!IsClosing)
+	{
+		e->Cancel = true;
+		this->Visibility = System::Windows::Visibility::Collapsed;
+	}
+}
+
+void PluginWindow::OnTextChanged(System::Object ^sender, TextChangedEventArgs ^e)
+{
+	if (Visibility != System::Windows::Visibility::Visible) return;
+	PlaylistView->Refresh();
 }
 
 //处理txtFilter中的按键事件
 void PluginWindow::OnKeyUp(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e)
 {
+	if (Visibility != System::Windows::Visibility::Visible) return;
 	if (e->Key == System::Windows::Input::Key::Enter)
 	{
 		if (PlaylistView->Count <= 0) return;
 		PlaylistView->MoveCurrentToFirst();
 		PlayIndex(Playlist->IndexOf((Track^)PlaylistView->CurrentItem));
-		this->Hide();
+		this->Visibility = System::Windows::Visibility::Collapsed;
 	}
 	else if (e->Key == System::Windows::Input::Key::Escape)
 	{
-		this->Hide();
+		this->Visibility = System::Windows::Visibility::Collapsed;
 	}
 }
 
 //处理lstPlaylist中的按键事件
 void PluginWindow::OnKeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e)
 {
+	if (Visibility != System::Windows::Visibility::Visible) return;
 	if (e->Key == System::Windows::Input::Key::Enter)
 	{
 		PlayIndex(Playlist->IndexOf((Track^)lstPlaylist->SelectedItem));
-		this->Hide();
+		this->Visibility = System::Windows::Visibility::Collapsed;
 	}
 	else if (e->Key == System::Windows::Input::Key::Tab)
 	{
@@ -152,11 +168,11 @@ void PluginWindow::OnKeyDown(System::Object ^sender, System::Windows::Input::Key
 	else if (e->Key == System::Windows::Input::Key::Q)
 	{
 		QueueIndex(Playlist->IndexOf((Track^)lstPlaylist->SelectedItem));
-		this->Hide();
+		this->Visibility = System::Windows::Visibility::Collapsed;
 	}
 	else if (e->Key == System::Windows::Input::Key::Escape)
 	{
-		this->Hide();
+		this->Visibility = System::Windows::Visibility::Collapsed;
 	}
 }
 
@@ -164,36 +180,52 @@ void PluginWindow::OnKeyDown(System::Object ^sender, System::Windows::Input::Key
 void PluginWindow::OnMouseDoubleClick(System::Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e)
 {
 	PlayIndex(Playlist->IndexOf((Track^)lstPlaylist->SelectedItem));
-	this->Hide();
+	this->Visibility = System::Windows::Visibility::Collapsed;
 }
 
 //焦点切换到lstPlaylist时的事件处理
 void PluginWindow::OnGotFocus(System::Object ^sender, System::Windows::RoutedEventArgs ^e)
 {
+	if (Visibility != System::Windows::Visibility::Visible) return;
 	if (lstPlaylist->SelectedIndex == -1)
 	{
 		if (PlaylistView->CurrentPosition == -1)
 		{
 			PlaylistView->MoveCurrentToFirst();
 		}
-		lstPlaylist->SelectedItem = PlaylistView->CurrentItem;
+		if (PlaylistView->CurrentItem != nullptr)
+		{
+			lstPlaylist->SelectedItem = PlaylistView->CurrentItem;
+		}
+		else
+		{
+			return;
+		}
 	}
 	lstPlaylist->ScrollIntoView(lstPlaylist->SelectedItem);
 }
 
 void PluginWindow::ShowAndFocus()
 {
-	Show();
+	if (Visibility == System::Windows::Visibility::Visible) return;
+	this->Visibility = System::Windows::Visibility::Visible;
 	Activate();
-	txtFilter->Text = String::Empty;
 	txtFilter->Focus();
+	txtFilter->Text = String::Empty;
 	PlaylistView->MoveCurrentToFirst();
 	lstPlaylist->SelectedItem = PlaylistView->CurrentItem;
 }
 
 void PluginWindow::AsyncInvoke(Action^ callback)
 {
+	if (callback == nullptr) return;
 	this->Dispatcher->BeginInvoke(System::Windows::Threading::DispatcherPriority::Normal, callback);
+}
+
+void PluginWindow::Invoke(Action^ callback)
+{
+	if (callback == nullptr) return;
+	this->Dispatcher->Invoke(System::Windows::Threading::DispatcherPriority::Normal, callback);
 }
 
 void PluginWindow::QueueIndex(int index)
@@ -202,4 +234,26 @@ void PluginWindow::QueueIndex(int index)
 	{
 		QueueApi->AddItemToQueue(index, 1, NULL);
 	}
+}
+
+//WINAMP API部分
+String ^ PluginWindow::GetPlayListFile(int index)
+{
+	return gcnew String((wchar_t*)SendMessage(plugin.hwndParent, WM_WA_IPC, (WPARAM)index, IPC_GETPLAYLISTFILEW));
+}
+
+String ^ PluginWindow::GetPlayListTitle(int index)
+{
+	return gcnew String((wchar_t*)SendMessage(plugin.hwndParent, WM_WA_IPC, (WPARAM)index, IPC_GETPLAYLISTTITLEW));
+}
+
+int PluginWindow::GetListLength()
+{
+	return SendMessage(plugin.hwndParent, WM_WA_IPC, 0, IPC_GETLISTLENGTH);
+}
+
+void PluginWindow::PlayIndex(int index)
+{
+	SendMessage(plugin.hwndParent, WM_WA_IPC, (WPARAM)index, IPC_SETPLAYLISTPOS);
+	SendMessage(plugin.hwndParent, WM_COMMAND, MAKEWPARAM(WINAMP_BUTTON2, 0), 0);
 }

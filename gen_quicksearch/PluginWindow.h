@@ -12,31 +12,19 @@ public Window
 public:
 	PluginWindow();
 	static PluginWindow^ MainWindow;
-	static void Init(HWND);
+	static void Init();
 	void Invoke(Action^ callback);
+	void AsyncInvoke(Action^ callback);
 	void ShowAndFocus();
+	Action^ SAFcallback;
 	void RefreshList();
-	static HWND hwnd_winamp;
+	Action^ RLcallback;
+	volatile bool IsClosing;
 private:
-	HWND MainHandle;
-	//WINAMP API部分
-	static String ^ GetPlayListFile(int index)
-	{
-		return gcnew String((wchar_t*)SendMessage(hwnd_winamp, WM_WA_IPC, (WPARAM)index, IPC_GETPLAYLISTFILEW));
-	};
-	static String ^ GetPlayListTitle(int index)
-	{
-		return gcnew String((wchar_t*)SendMessage(hwnd_winamp, WM_WA_IPC, (WPARAM)index, IPC_GETPLAYLISTTITLEW));
-	};
-	static int GetListLength()
-	{
-		return SendMessage(hwnd_winamp, WM_WA_IPC, 0, IPC_GETLISTLENGTH);
-	};
-	static void PlayIndex(int index)
-	{
-		SendMessage(hwnd_winamp, WM_WA_IPC, (WPARAM)index, IPC_SETPLAYLISTPOS);
-		SendMessage(hwnd_winamp, WM_COMMAND, MAKEWPARAM(WINAMP_BUTTON2, 0), 0);
-	};
+	static String^ GetPlayListFile(int index);
+	static String^ GetPlayListTitle(int index);
+	static int GetListLength();
+	static void PlayIndex(int index);
 	static void QueueIndex(int index);
 	//窗体初始化与事件处理函数
 	void InitializeComponent();
@@ -52,7 +40,7 @@ protected:
 	void OnKeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e);
 	void OnMouseDoubleClick(System::Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e);
 	void OnGotFocus(System::Object ^sender, System::Windows::RoutedEventArgs ^e);
-public:
-	void AsyncInvoke(Action^ callback);
+	void OnClosing(System::ComponentModel::CancelEventArgs^ e) override;
+	void OnSourceInitialized(EventArgs^ e) override;
 };
 
