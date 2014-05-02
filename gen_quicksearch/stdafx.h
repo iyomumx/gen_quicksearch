@@ -14,5 +14,3 @@ extern api_service *serviceManager;
 #include "Track.h"
 #include "PluginWindow.h"
 #include "gen_quicksearch.h"
-
-[assembly:System::Runtime::CompilerServices::CompilationRelaxationsAttribute(System::Runtime::CompilerServices::CompilationRelaxations::NoStringInterning)];

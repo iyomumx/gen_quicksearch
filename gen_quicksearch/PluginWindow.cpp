@@ -115,13 +115,18 @@ void PluginWindow::OnDeactivated(EventArgs^ e)
 	this->Hide();
 }
 
-//处理txtFilter中的Enter事件
+//处理txtFilter中的按键事件
 void PluginWindow::OnKeyUp(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e)
 {
 	if (e->Key == System::Windows::Input::Key::Enter)
 	{
+		if (PlaylistView->Count <= 0) return;
 		PlaylistView->MoveCurrentToFirst();
 		PlayIndex(Playlist->IndexOf((Track^)PlaylistView->CurrentItem));
+		this->Hide();
+	}
+	else if (e->Key == System::Windows::Input::Key::Escape)
+	{
 		this->Hide();
 	}
 }
@@ -147,6 +152,10 @@ void PluginWindow::OnKeyDown(System::Object ^sender, System::Windows::Input::Key
 	else if (e->Key == System::Windows::Input::Key::Q)
 	{
 		QueueIndex(Playlist->IndexOf((Track^)lstPlaylist->SelectedItem));
+		this->Hide();
+	}
+	else if (e->Key == System::Windows::Input::Key::Escape)
+	{
 		this->Hide();
 	}
 }

@@ -6,9 +6,9 @@
 #include <GEN.H>
 #include <wa_ipc.h>
 
-#define PLUGIN_VER 0x10
+#define PLUGIN_VER 0x11
 #define PLUGIN_SHORT_NAME "Search Playlist"
-#define PLUGIN_NAME "Quick Search In Current Playlist v0.0.1"
+#define PLUGIN_NAME "Quick Search In Current Playlist v0.0.2"
 
 typedef struct {
 	char *name;       // this is the name that will appear in the Global Hotkeys preferences panel

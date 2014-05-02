@@ -22,11 +22,11 @@ private:
 	//WINAMP API²¿·Ö
 	static String ^ GetPlayListFile(int index)
 	{
-		return gcnew String((wchar_t*)SendMessage(hwnd_winamp, WM_WA_IPC, index, IPC_GETPLAYLISTFILEW));
+		return gcnew String((wchar_t*)SendMessage(hwnd_winamp, WM_WA_IPC, (WPARAM)index, IPC_GETPLAYLISTFILEW));
 	};
 	static String ^ GetPlayListTitle(int index)
 	{
-		return gcnew String((wchar_t*)SendMessage(hwnd_winamp, WM_WA_IPC, index, IPC_GETPLAYLISTTITLEW));
+		return gcnew String((wchar_t*)SendMessage(hwnd_winamp, WM_WA_IPC, (WPARAM)index, IPC_GETPLAYLISTTITLEW));
 	};
 	static int GetListLength()
 	{
@@ -34,7 +34,7 @@ private:
 	};
 	static void PlayIndex(int index)
 	{
-		SendMessage(hwnd_winamp, WM_WA_IPC, index, IPC_SETPLAYLISTPOS);
+		SendMessage(hwnd_winamp, WM_WA_IPC, (WPARAM)index, IPC_SETPLAYLISTPOS);
 		SendMessage(hwnd_winamp, WM_COMMAND, MAKEWPARAM(WINAMP_BUTTON2, 0), 0);
 	};
 	static void QueueIndex(int index);
