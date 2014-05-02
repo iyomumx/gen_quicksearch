@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+#define HIDE(window) (window)->Visibility = System::Windows::Visibility::Collapsed
 
 PluginWindow::PluginWindow()
 {
@@ -104,13 +105,13 @@ void PluginWindow::RefreshList()
 void PluginWindow::OnSourceInitialized(EventArgs^ e)
 {
 	Window::OnSourceInitialized(e);
-	Visibility = System::Windows::Visibility::Collapsed;
+	HIDE(this);
 }
 
 void PluginWindow::OnDeactivated(EventArgs^ e)
 {
 	Window::OnActivated(e);
-	this->Visibility = System::Windows::Visibility::Collapsed;
+	HIDE(this);
 }
 
 void PluginWindow::OnMouseLeftButtonDown(System::Windows::Input::MouseButtonEventArgs^ e)
@@ -125,7 +126,7 @@ void PluginWindow::OnClosing(System::ComponentModel::CancelEventArgs ^e)
 	if (!IsClosing)
 	{
 		e->Cancel = true;
-		this->Visibility = System::Windows::Visibility::Collapsed;
+		HIDE(this);
 	}
 }
 
@@ -144,11 +145,11 @@ void PluginWindow::OnKeyUp(System::Object ^sender, System::Windows::Input::KeyEv
 		if (PlaylistView->Count <= 0) return;
 		PlaylistView->MoveCurrentToFirst();
 		PlayIndex(Playlist->IndexOf((Track^)PlaylistView->CurrentItem));
-		this->Visibility = System::Windows::Visibility::Collapsed;
+		HIDE(this);
 	}
 	else if (e->Key == System::Windows::Input::Key::Escape)
 	{
-		this->Visibility = System::Windows::Visibility::Collapsed;
+		HIDE(this);
 	}
 }
 
@@ -159,7 +160,7 @@ void PluginWindow::OnKeyDown(System::Object ^sender, System::Windows::Input::Key
 	if (e->Key == System::Windows::Input::Key::Enter)
 	{
 		PlayIndex(Playlist->IndexOf((Track^)lstPlaylist->SelectedItem));
-		this->Visibility = System::Windows::Visibility::Collapsed;
+		HIDE(this);
 	}
 	else if (e->Key == System::Windows::Input::Key::Tab)
 	{
@@ -174,11 +175,11 @@ void PluginWindow::OnKeyDown(System::Object ^sender, System::Windows::Input::Key
 	else if (e->Key == System::Windows::Input::Key::Q)
 	{
 		QueueIndex(Playlist->IndexOf((Track^)lstPlaylist->SelectedItem));
-		this->Visibility = System::Windows::Visibility::Collapsed;
+		HIDE(this);
 	}
 	else if (e->Key == System::Windows::Input::Key::Escape)
 	{
-		this->Visibility = System::Windows::Visibility::Collapsed;
+		HIDE(this);
 	}
 }
 
@@ -186,7 +187,7 @@ void PluginWindow::OnKeyDown(System::Object ^sender, System::Windows::Input::Key
 void PluginWindow::OnMouseDoubleClick(System::Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e)
 {
 	PlayIndex(Playlist->IndexOf((Track^)lstPlaylist->SelectedItem));
-	this->Visibility = System::Windows::Visibility::Collapsed;
+	HIDE(this);
 }
 
 //焦点切换到lstPlaylist时的事件处理
@@ -234,6 +235,7 @@ void PluginWindow::Invoke(Action^ callback)
 	this->Dispatcher->Invoke(System::Windows::Threading::DispatcherPriority::Normal, callback);
 }
 
+//WINAMP API部分
 void PluginWindow::QueueIndex(int index)
 {
 	if (QueueApi != NULL)
@@ -242,7 +244,6 @@ void PluginWindow::QueueIndex(int index)
 	}
 }
 
-//WINAMP API部分
 String ^ PluginWindow::GetPlayListFile(int index)
 {
 	return gcnew String((wchar_t*)SendMessage(plugin.hwndParent, WM_WA_IPC, (WPARAM)index, IPC_GETPLAYLISTFILEW));
