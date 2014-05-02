@@ -113,6 +113,12 @@ void PluginWindow::OnDeactivated(EventArgs^ e)
 	this->Visibility = System::Windows::Visibility::Collapsed;
 }
 
+void PluginWindow::OnMouseLeftButtonDown(System::Windows::Input::MouseButtonEventArgs^ e)
+{
+	Window::OnMouseLeftButtonDown(e);
+	DragMove();
+}
+
 void PluginWindow::OnClosing(System::ComponentModel::CancelEventArgs ^e)
 {
 	Window::OnClosing(e);

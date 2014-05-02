@@ -42,5 +42,6 @@ protected:
 	void OnGotFocus(System::Object ^sender, System::Windows::RoutedEventArgs ^e);
 	void OnClosing(System::ComponentModel::CancelEventArgs^ e) override;
 	void OnSourceInitialized(EventArgs^ e) override;
+	void OnMouseLeftButtonDown(System::Windows::Input::MouseButtonEventArgs^ e) override;
 };
 
