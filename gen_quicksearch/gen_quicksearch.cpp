@@ -54,7 +54,7 @@ LRESULT WINAPI WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		if (lParam == IPC_PLAYLIST_MODIFIED)
 		{
-			PluginWindow::MainWindow->AsyncInvoke(PluginWindow::MainWindow->RLcallback);
+			PluginWindow::MainWindow->RLcallback->BeginInvoke(nullptr, nullptr);
 		}
 	}
 	return (fUnicode) ? CallWindowProcW(oldWndProc, hwnd, msg, wParam, lParam) : CallWindowProcA(oldWndProc, hwnd, msg, wParam, lParam);

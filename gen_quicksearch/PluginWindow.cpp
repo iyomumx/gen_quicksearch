@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "PluginWindow.h"
 
 #define HIDE(window) (window)->Visibility = System::Windows::Visibility::Collapsed
 #define ISVISIBLE(window) ((window)->Visibility == System::Windows::Visibility::Visible)
@@ -30,7 +31,7 @@ void PluginWindow::InitializeComponent()
 	this->Visibility = System::Windows::Visibility::Hidden;
 	this->WindowStyle = System::Windows::WindowStyle::None;
 	this->ResizeMode = System::Windows::ResizeMode::NoResize;
-
+	this->PreviewKeyDown += gcnew System::Windows::Input::KeyEventHandler(this, &PluginWindow::window_PreviewKeyDown);
 	this->IsClosing = false;
 	//子控件
 	Grid ^ grid = gcnew Grid();
@@ -51,7 +52,7 @@ void PluginWindow::InitializeComponent()
 	grid->Children->Add(txtFilter);
 	txtFilter->SetValue(Grid::RowProperty, (Object^)0);
 	txtFilter->Margin = *gcnew Thickness(1);
-	txtFilter->Height = txtFilter->FontSize + 10;
+	txtFilter->Height = txtFilter->FontSize * txtFilter->FontFamily->LineSpacing * 1.25;
 	txtFilter->TextWrapping = TextWrapping::NoWrap;
 	txtFilter->TabIndex = 0;
 	txtFilter->TextChanged += gcnew TextChangedEventHandler(this, &PluginWindow::txtFilter_TextChanged);
@@ -66,6 +67,9 @@ void PluginWindow::InitializeComponent()
 	lstPlaylist->MouseDoubleClick += gcnew System::Windows::Input::MouseButtonEventHandler(this, &PluginWindow::lstPlaylist_MouseDoubleClick);
 	PlaylistView->Filter = gcnew Predicate<Object^>(this, &PluginWindow::Filter);
 
+	SAFcallback = gcnew Action(this, &PluginWindow::ShowAndFocus);
+	RLcallback = gcnew Action(this, &PluginWindow::RefreshList);
+	this->PlaylistLock = gcnew System::Threading::Mutex();
 	this->RefreshList();
 	//非托管项设置，延迟到此处避免JTFE未加载而无法获得API接口
 	factory = WASABI_API_SVC->service_getServiceByGuid(QueueManagerApiGUID);
@@ -77,8 +81,6 @@ void PluginWindow::InitializeComponent()
 	{
 		QueueApi = NULL;
 	}
-	SAFcallback = gcnew Action(this, &PluginWindow::ShowAndFocus);
-	RLcallback = gcnew Action(this, &PluginWindow::RefreshList);
 }
 
 bool PluginWindow::Filter(Object^ obj)
@@ -94,11 +96,16 @@ bool PluginWindow::Filter(Object^ obj)
 
 void PluginWindow::RefreshList()
 {
-	int i, length = GetListLength();
-	Playlist->Clear();
-	for (i = 0; i < length; i++)
+	if (PlaylistLock->WaitOne(0))
 	{
-		Playlist->Add(gcnew Track(GetPlayListFile(i), GetPlayListTitle(i)));
+		int i, length = GetListLength();
+		Action<Track^>^ add = gcnew Action<Track^>(Playlist, &ObservableCollection<Track^>::Add);
+		this->Invoke(gcnew Action(Playlist, &ObservableCollection<Track^>::Clear));
+		for (i = 0; i < length; i++)
+		{
+			this->AsyncInvoke(add, gcnew Track(GetPlayListFile(i), GetPlayListTitle(i)));
+		}
+		PlaylistLock->ReleaseMutex();
 	}
 }
 
@@ -147,10 +154,6 @@ void PluginWindow::txtFilter_KeyDown(System::Object ^sender, System::Windows::In
 		PlayIndex(Playlist->IndexOf((Track^)PlaylistView->CurrentItem));
 		HIDE(this);
 	}
-	else if (e->Key == System::Windows::Input::Key::Escape)
-	{
-		HIDE(this);
-	}
 	else if (e->Key == System::Windows::Input::Key::Tab)
 	{
 		if (PlaylistView->Count == 0)
@@ -196,17 +199,40 @@ void PluginWindow::lstPlaylist_KeyDown(System::Object ^sender, System::Windows::
 		QueueIndex(Playlist->IndexOf((Track^)lstPlaylist->SelectedItem));
 		HIDE(this);
 	}
-	else if (e->Key == System::Windows::Input::Key::Escape)
+}
+
+//鼠标双击时，播放选定项。
+void PluginWindow::lstPlaylist_MouseDoubleClick(System::Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e)
+{
+	DependencyObject^ obj = dynamic_cast<DependencyObject^>(e->OriginalSource);
+	while ((obj != nullptr) && (obj != lstPlaylist))
 	{
-		HIDE(this);
+		if (obj->GetType() == ListBoxItem::typeid)
+		{
+			Object^ t = (dynamic_cast<ListBoxItem^>(obj))->DataContext;
+			if (t->GetType() == Track::typeid)
+			{
+				PlayIndex(Playlist->IndexOf(dynamic_cast<Track^>(t)));
+				HIDE(this);
+			}
+			break;
+		}
+		obj = System::Windows::Media::VisualTreeHelper::GetParent(obj);
 	}
 }
 
-//鼠标双击时，播放选定项。由于鼠标第一次按下会选中其位置所在项，此处不确保选中。
-void PluginWindow::lstPlaylist_MouseDoubleClick(System::Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e)
+void PluginWindow::window_PreviewKeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e)
 {
-	PlayIndex(Playlist->IndexOf((Track^)lstPlaylist->SelectedItem));
-	HIDE(this);
+	if (e->Key == System::Windows::Input::Key::Escape)
+	{
+		e->Handled = true;
+		HIDE(this);
+	}
+	else if (e->Key == System::Windows::Input::Key::F5)
+	{
+		e->Handled = true;
+		RLcallback->BeginInvoke(nullptr, nullptr);
+	}
 }
 
 void PluginWindow::ShowAndFocus()
@@ -224,6 +250,12 @@ void PluginWindow::AsyncInvoke(Action^ callback)
 {
 	if (callback == nullptr) return;
 	this->Dispatcher->BeginInvoke(System::Windows::Threading::DispatcherPriority::Normal, callback);
+}
+
+generic <typename T>void PluginWindow::AsyncInvoke(Action<T>^ callback, T arg)
+{
+	if (callback == nullptr) return;
+	this->Dispatcher->BeginInvoke(System::Windows::Threading::DispatcherPriority::Normal, callback, arg);
 }
 
 void PluginWindow::Invoke(Action^ callback)

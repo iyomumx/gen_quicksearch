@@ -15,6 +15,7 @@ public:
 	static void Init();
 	void Invoke(Action^ callback);
 	void AsyncInvoke(Action^ callback);
+	generic <typename T>void AsyncInvoke(Action<T>^ callback, T arg);
 	void ShowAndFocus();
 	Action^ SAFcallback;
 	void RefreshList();
@@ -32,6 +33,8 @@ private:
 	ListBox^ lstPlaylist;
 	ObservableCollection<Track^>^ Playlist;
 	CollectionView^ PlaylistView;
+	System::Threading::Mutex^ PlaylistLock;
+	void window_PreviewKeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e);
 	void txtFilter_TextChanged(System::Object ^sender, System::Windows::Controls::TextChangedEventArgs ^e);
 	void txtFilter_KeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e);
 	void lstPlaylist_KeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e);
