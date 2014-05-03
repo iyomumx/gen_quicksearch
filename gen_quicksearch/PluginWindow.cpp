@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #define HIDE(window) (window)->Visibility = System::Windows::Visibility::Collapsed
+#define ISVISIBLE(window) ((window)->Visibility == System::Windows::Visibility::Visible)
 
 PluginWindow::PluginWindow()
 {
@@ -139,7 +140,7 @@ void PluginWindow::OnTextChanged(System::Object ^sender, TextChangedEventArgs ^e
 //处理txtFilter中的按键事件
 void PluginWindow::OnKeyUp(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e)
 {
-	if (Visibility != System::Windows::Visibility::Visible) return;
+	if (!ISVISIBLE(this)) return;
 	if (e->Key == System::Windows::Input::Key::Enter)
 	{
 		if (PlaylistView->Count <= 0) return;
@@ -156,7 +157,7 @@ void PluginWindow::OnKeyUp(System::Object ^sender, System::Windows::Input::KeyEv
 //处理lstPlaylist中的按键事件
 void PluginWindow::OnKeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e)
 {
-	if (Visibility != System::Windows::Visibility::Visible) return;
+	if (!ISVISIBLE(this)) return;
 	if (e->Key == System::Windows::Input::Key::Enter)
 	{
 		PlayIndex(Playlist->IndexOf((Track^)lstPlaylist->SelectedItem));
@@ -193,7 +194,7 @@ void PluginWindow::OnMouseDoubleClick(System::Object ^sender, System::Windows::I
 //焦点切换到lstPlaylist时的事件处理
 void PluginWindow::OnGotFocus(System::Object ^sender, System::Windows::RoutedEventArgs ^e)
 {
-	if (Visibility != System::Windows::Visibility::Visible) return;
+	if (!ISVISIBLE(this)) return;
 	if (lstPlaylist->SelectedIndex == -1)
 	{
 		if (PlaylistView->CurrentPosition == -1)
@@ -214,7 +215,7 @@ void PluginWindow::OnGotFocus(System::Object ^sender, System::Windows::RoutedEve
 
 void PluginWindow::ShowAndFocus()
 {
-	if (Visibility == System::Windows::Visibility::Visible) return;
+	if (ISVISIBLE(this)) return;
 	this->Visibility = System::Windows::Visibility::Visible;
 	Activate();
 	txtFilter->Focus();
