@@ -32,14 +32,13 @@ private:
 	ListBox^ lstPlaylist;
 	ObservableCollection<Track^>^ Playlist;
 	CollectionView^ PlaylistView;
-	void OnTextChanged(System::Object ^sender, System::Windows::Controls::TextChangedEventArgs ^e);
+	void txtFilter_TextChanged(System::Object ^sender, System::Windows::Controls::TextChangedEventArgs ^e);
+	void txtFilter_KeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e);
+	void lstPlaylist_KeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e);
+	void lstPlaylist_MouseDoubleClick(System::Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e);
 	bool Filter(Object^ obj);
 protected:
 	void OnDeactivated(EventArgs^ e) override;
-	void OnKeyUp(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e);
-	void OnKeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e);
-	void OnMouseDoubleClick(System::Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e);
-	void OnGotFocus(System::Object ^sender, System::Windows::RoutedEventArgs ^e);
 	void OnClosing(System::ComponentModel::CancelEventArgs^ e) override;
 	void OnSourceInitialized(EventArgs^ e) override;
 	void OnMouseLeftButtonDown(System::Windows::Input::MouseButtonEventArgs^ e) override;

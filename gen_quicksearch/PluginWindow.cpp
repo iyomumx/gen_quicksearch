@@ -54,17 +54,16 @@ void PluginWindow::InitializeComponent()
 	txtFilter->Height = txtFilter->FontSize + 10;
 	txtFilter->TextWrapping = TextWrapping::NoWrap;
 	txtFilter->TabIndex = 0;
-	txtFilter->TextChanged += gcnew TextChangedEventHandler(this, &PluginWindow::OnTextChanged);
-	txtFilter->KeyUp += gcnew System::Windows::Input::KeyEventHandler(this, &PluginWindow::OnKeyUp);
+	txtFilter->TextChanged += gcnew TextChangedEventHandler(this, &PluginWindow::txtFilter_TextChanged);
+	txtFilter->KeyDown += gcnew System::Windows::Input::KeyEventHandler(this, &PluginWindow::txtFilter_KeyDown);
 
 	grid->Children->Add(lstPlaylist);
 	lstPlaylist->SetValue(Grid::RowProperty, (Object^)1);
 	lstPlaylist->Margin = *gcnew Thickness(1);
 	lstPlaylist->ItemsSource = this->Playlist;
 	lstPlaylist->TabIndex = 1;
-	lstPlaylist->KeyDown += gcnew System::Windows::Input::KeyEventHandler(this, &PluginWindow::OnKeyDown);
-	lstPlaylist->MouseDoubleClick += gcnew System::Windows::Input::MouseButtonEventHandler(this, &PluginWindow::OnMouseDoubleClick);
-	lstPlaylist->GotFocus += gcnew System::Windows::RoutedEventHandler(this, &PluginWindow::OnGotFocus);
+	lstPlaylist->KeyDown += gcnew System::Windows::Input::KeyEventHandler(this, &PluginWindow::lstPlaylist_KeyDown);
+	lstPlaylist->MouseDoubleClick += gcnew System::Windows::Input::MouseButtonEventHandler(this, &PluginWindow::lstPlaylist_MouseDoubleClick);
 	PlaylistView->Filter = gcnew Predicate<Object^>(this, &PluginWindow::Filter);
 
 	this->RefreshList();
@@ -131,14 +130,14 @@ void PluginWindow::OnClosing(System::ComponentModel::CancelEventArgs ^e)
 	}
 }
 
-void PluginWindow::OnTextChanged(System::Object ^sender, TextChangedEventArgs ^e)
+void PluginWindow::txtFilter_TextChanged(System::Object ^sender, TextChangedEventArgs ^e)
 {
 	if (Visibility != System::Windows::Visibility::Visible) return;
 	PlaylistView->Refresh();
 }
 
 //处理txtFilter中的按键事件
-void PluginWindow::OnKeyUp(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e)
+void PluginWindow::txtFilter_KeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e)
 {
 	if (!ISVISIBLE(this)) return;
 	if (e->Key == System::Windows::Input::Key::Enter)
@@ -152,10 +151,29 @@ void PluginWindow::OnKeyUp(System::Object ^sender, System::Windows::Input::KeyEv
 	{
 		HIDE(this);
 	}
+	else if (e->Key == System::Windows::Input::Key::Tab)
+	{
+		if (PlaylistView->Count == 0)
+		{
+			e->Handled = true;
+			System::Media::SystemSounds::Question->Play();
+			return;
+		}
+		PlaylistView->MoveCurrentToFirst();
+		if (PlaylistView->CurrentItem != nullptr)
+		{
+			lstPlaylist->SelectedItem = PlaylistView->CurrentItem;
+		}
+		else
+		{
+			return;
+		}
+		lstPlaylist->ScrollIntoView(lstPlaylist->SelectedItem);
+	}
 }
 
 //处理lstPlaylist中的按键事件
-void PluginWindow::OnKeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e)
+void PluginWindow::lstPlaylist_KeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e)
 {
 	if (!ISVISIBLE(this)) return;
 	if (e->Key == System::Windows::Input::Key::Enter)
@@ -185,32 +203,10 @@ void PluginWindow::OnKeyDown(System::Object ^sender, System::Windows::Input::Key
 }
 
 //鼠标双击时，播放选定项。由于鼠标第一次按下会选中其位置所在项，此处不确保选中。
-void PluginWindow::OnMouseDoubleClick(System::Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e)
+void PluginWindow::lstPlaylist_MouseDoubleClick(System::Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e)
 {
 	PlayIndex(Playlist->IndexOf((Track^)lstPlaylist->SelectedItem));
 	HIDE(this);
-}
-
-//焦点切换到lstPlaylist时的事件处理
-void PluginWindow::OnGotFocus(System::Object ^sender, System::Windows::RoutedEventArgs ^e)
-{
-	if (!ISVISIBLE(this)) return;
-	if (lstPlaylist->SelectedIndex == -1)
-	{
-		if (PlaylistView->CurrentPosition == -1)
-		{
-			PlaylistView->MoveCurrentToFirst();
-		}
-		if (PlaylistView->CurrentItem != nullptr)
-		{
-			lstPlaylist->SelectedItem = PlaylistView->CurrentItem;
-		}
-		else
-		{
-			return;
-		}
-	}
-	lstPlaylist->ScrollIntoView(lstPlaylist->SelectedItem);
 }
 
 void PluginWindow::ShowAndFocus()
