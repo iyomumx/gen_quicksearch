@@ -24,6 +24,7 @@ void PluginWindow::InitializeComponent()
 {
 	//初始化与组件设定
 	//窗体属性
+	this->BeginInit();
 	this->Height = SystemParameters::WorkArea.Height / 2;
 	this->Width = SystemParameters::WorkArea.Width / 4;
 	this->Topmost = true;
@@ -35,6 +36,7 @@ void PluginWindow::InitializeComponent()
 	this->IsClosing = false;
 	//子控件
 	Grid ^ grid = gcnew Grid();
+	grid->BeginInit();
 	this->Content = grid;
 	grid->Margin = *gcnew Thickness(2);
 
@@ -49,6 +51,7 @@ void PluginWindow::InitializeComponent()
 	Playlist = gcnew ObservableCollection<Track^>();
 	PlaylistView = (CollectionView^)CollectionViewSource::GetDefaultView(Playlist);
 
+	txtFilter->BeginInit();
 	grid->Children->Add(txtFilter);
 	txtFilter->SetValue(Grid::RowProperty, (Object^)0);
 	txtFilter->Margin = *gcnew Thickness(1);
@@ -57,7 +60,9 @@ void PluginWindow::InitializeComponent()
 	txtFilter->TabIndex = 0;
 	txtFilter->TextChanged += gcnew TextChangedEventHandler(this, &PluginWindow::txtFilter_TextChanged);
 	txtFilter->KeyDown += gcnew System::Windows::Input::KeyEventHandler(this, &PluginWindow::txtFilter_KeyDown);
+	txtFilter->EndInit();
 
+	lstPlaylist->BeginInit();
 	grid->Children->Add(lstPlaylist);
 	lstPlaylist->SetValue(Grid::RowProperty, (Object^)1);
 	lstPlaylist->Margin = *gcnew Thickness(1);
@@ -66,10 +71,14 @@ void PluginWindow::InitializeComponent()
 	lstPlaylist->KeyDown += gcnew System::Windows::Input::KeyEventHandler(this, &PluginWindow::lstPlaylist_KeyDown);
 	lstPlaylist->MouseDoubleClick += gcnew System::Windows::Input::MouseButtonEventHandler(this, &PluginWindow::lstPlaylist_MouseDoubleClick);
 	PlaylistView->Filter = gcnew Predicate<Object^>(this, &PluginWindow::Filter);
+	lstPlaylist->EndInit();
+
+	grid->EndInit();
 
 	SAFcallback = gcnew Action(this, &PluginWindow::ShowAndFocus);
 	RLcallback = gcnew Action(this, &PluginWindow::RefreshList);
 	this->PlaylistLock = gcnew System::Threading::Mutex();
+	this->EndInit();
 	this->RefreshList();
 	//非托管项设置，延迟到此处避免JTFE未加载而无法获得API接口
 	factory = WASABI_API_SVC->service_getServiceByGuid(QueueManagerApiGUID);
@@ -96,16 +105,22 @@ bool PluginWindow::Filter(Object^ obj)
 
 void PluginWindow::RefreshList()
 {
-	if (PlaylistLock->WaitOne(0))
+	if ((PlaylistLock != nullptr) && (PlaylistLock->WaitOne(0)))
 	{
-		int i, length = GetListLength();
-		Action<Track^>^ add = gcnew Action<Track^>(Playlist, &ObservableCollection<Track^>::Add);
-		this->Invoke(gcnew Action(Playlist, &ObservableCollection<Track^>::Clear));
-		for (i = 0; i < length; i++)
+		try
 		{
-			this->AsyncInvoke(add, gcnew Track(GetPlayListFile(i), GetPlayListTitle(i)));
+			int i, length = GetListLength();
+			Action<Track^>^ add = gcnew Action<Track^>(Playlist, &ObservableCollection<Track^>::Add);
+			this->Invoke(gcnew Action(Playlist, &ObservableCollection<Track^>::Clear));
+			for (i = 0; i < length; i++)
+			{
+				this->AsyncInvoke(add, gcnew Track(GetPlayListFile(i), GetPlayListTitle(i)));
+			}
 		}
-		PlaylistLock->ReleaseMutex();
+		finally
+		{
+			PlaylistLock->ReleaseMutex();
+		}
 	}
 }
 
@@ -134,6 +149,11 @@ void PluginWindow::OnClosing(System::ComponentModel::CancelEventArgs ^e)
 	{
 		e->Cancel = true;
 		HIDE(this);
+	}
+	else
+	{
+		this->PlaylistLock->Close();	//尽管只有在winamp退出后才会调用而未命名的Mutex为进程独立会随之销毁，姑且还是加上
+		this->PlaylistLock = nullptr;
 	}
 }
 
