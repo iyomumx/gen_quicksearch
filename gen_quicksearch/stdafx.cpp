@@ -18,4 +18,4 @@ genHotkeysAddStruct hotkey;
 api_service *WASABI_API_SVC;
 waServiceFactory *factory;
 api_queue * QueueApi;
-winampGeneralPurposePlugin plugin = { PLUGIN_VER, PLUGIN_NAME, init, config, quit, 0, 0 };
+winampGeneralPurposePlugin plugin = { PLUGIN_VER, (char*)(void*)_T(PLUGIN_NAME), init, config, quit, 0, 0 };
