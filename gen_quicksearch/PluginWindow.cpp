@@ -77,7 +77,7 @@ void PluginWindow::InitializeComponent()
 
 	SAFcallback = gcnew Action(this, &PluginWindow::ShowAndFocus);
 	RLcallback = gcnew Action(this, &PluginWindow::RefreshList);
-	this->PlaylistLock = gcnew System::Threading::Mutex();
+	this->PlaylistLock = gcnew Object();
 	this->EndInit();
 	this->RefreshList();
 	//非托管项设置，延迟到此处避免JTFE未加载而无法获得API接口
@@ -105,7 +105,8 @@ bool PluginWindow::Filter(Object^ obj)
 
 void PluginWindow::RefreshList()
 {
-	if ((PlaylistLock != nullptr) && (PlaylistLock->WaitOne(0)))
+	using System::Threading::Monitor;
+	if ((PlaylistLock != nullptr) && (Monitor::TryEnter(PlaylistLock, 0)))
 	{
 		try
 		{
@@ -119,7 +120,7 @@ void PluginWindow::RefreshList()
 		}
 		finally
 		{
-			PlaylistLock->ReleaseMutex();
+			Monitor::Exit(PlaylistLock);
 		}
 	}
 }
@@ -149,11 +150,6 @@ void PluginWindow::OnClosing(System::ComponentModel::CancelEventArgs ^e)
 	{
 		e->Cancel = true;
 		HIDE(this);
-	}
-	else
-	{
-		this->PlaylistLock->Close();	//尽管只有在winamp退出后才会调用而未命名的Mutex为进程独立会随之销毁，姑且还是加上
-		this->PlaylistLock = nullptr;
 	}
 }
 

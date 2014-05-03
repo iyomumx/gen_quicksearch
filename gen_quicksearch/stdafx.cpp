@@ -4,9 +4,9 @@ using namespace System;
 using namespace System::Reflection;
 
 #define PLUGIN_VER 0x11
-#define PLUGIN_NAME "Quick Search In Current Playlist v0.0.4"
+#define PLUGIN_NAME "Quick Search In Current Playlist v0.0.5"
 
-[assembly:AssemblyVersionAttribute("1.0.0.4")];
+[assembly:AssemblyVersionAttribute("1.0.0.5")];
 [assembly:AssemblyCultureAttribute("zh")];
 [assembly:AssemblyTitleAttribute("WinampQuickSearch")];
 [assembly:AssemblyCopyrightAttribute("iyomumx @ 2014")];

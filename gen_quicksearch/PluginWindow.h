@@ -33,7 +33,7 @@ private:
 	ListBox^ lstPlaylist;
 	ObservableCollection<Track^>^ Playlist;
 	CollectionView^ PlaylistView;
-	System::Threading::Mutex^ PlaylistLock;
+	Object^ PlaylistLock;
 	void window_PreviewKeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e);
 	void txtFilter_TextChanged(System::Object ^sender, System::Windows::Controls::TextChangedEventArgs ^e);
 	void txtFilter_KeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e);
