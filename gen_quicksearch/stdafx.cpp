@@ -3,7 +3,10 @@
 using namespace System;
 using namespace System::Reflection;
 
-[assembly:AssemblyVersionAttribute("1.0.0.2")];
+#define PLUGIN_VER 0x11
+#define PLUGIN_NAME "Quick Search In Current Playlist v0.0.3"
+
+[assembly:AssemblyVersionAttribute("1.0.0.3")];
 [assembly:AssemblyCultureAttribute("zh")];
 [assembly:AssemblyTitleAttribute("WinampQuickSearch")];
 [assembly:AssemblyCopyrightAttribute("iyomumx @ 2014")];
