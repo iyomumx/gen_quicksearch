@@ -1,4 +1,5 @@
 #pragma once
+#pragma managed(push,off)
 
 #include <Windows.h>
 #include <tchar.h>
@@ -10,6 +11,8 @@ extern api_service *serviceManager;
 #define WASABI_API_SVC serviceManager
 #include <api\service\waServiceFactory.h>
 #include <..\Agave\Config\api_config.h>
+
+#pragma managed(pop)
 
 #include "Track.h"
 #include "PluginWindow.h"

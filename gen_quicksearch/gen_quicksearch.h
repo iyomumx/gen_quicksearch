@@ -8,6 +8,8 @@
 
 #define PLUGIN_SHORT_NAME "Search Playlist"
 
+#pragma managed(push,off)
+
 typedef struct {
 	char *name;       // this is the name that will appear in the Global Hotkeys preferences panel
 	DWORD flags;      // one or more HKF_* flags from above
@@ -20,6 +22,8 @@ typedef struct {
 
 	int extended[6];  // for future extension - always set this to zero!
 } genHotkeysAddStruct;
+
+#pragma managed(pop)
 
 extern int init();
 extern void quit();
