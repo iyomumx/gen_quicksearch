@@ -34,46 +34,40 @@ void PluginWindow::InitializeComponent()
 	this->ResizeMode = System::Windows::ResizeMode::NoResize;
 	this->PreviewKeyDown += gcnew System::Windows::Input::KeyEventHandler(this, &PluginWindow::window_PreviewKeyDown);
 	this->IsClosing = false;
+
+	Grid ^ grid;
+	{
+		using System::Resources::ResourceManager;
+		auto rm = gcnew ResourceManager(this->GetType());
+		auto xr = dynamic_cast<ResourceDictionary^>(System::Windows::Markup::XamlReader::Parse(rm->GetObject("Resource.xaml")->ToString()));
+		grid = dynamic_cast<Grid^>(xr["grid"]);
+	}
+	for each (Object^ o in grid->Children)
+	{
+		if (o->GetType() == TextBox::typeid)
+		{
+			txtFilter = dynamic_cast<TextBox^>(o);
+		}
+		else if (o->GetType() == ListBox::typeid)
+		{
+			lstPlaylist = dynamic_cast<ListBox^>(o);
+		}
+	}
+
 	//вс©ь╪Ч
-	Grid ^ grid = gcnew Grid();
-	grid->BeginInit();
+
 	this->Content = grid;
-	grid->Margin = *gcnew Thickness(2);
-
-	RowDefinition ^ rd;
-	grid->RowDefinitions->Add(rd = gcnew RowDefinition());
-	rd->Height = GridLength::Auto;
-	grid->RowDefinitions->Add(rd = gcnew RowDefinition());
-	rd->Height = *gcnew GridLength(1, GridUnitType::Star);
-
-	txtFilter = gcnew TextBox();
-	lstPlaylist = gcnew ListBox();
 	Playlist = gcnew ObservableCollection<Track^>();
 	PlaylistView = (CollectionView^)CollectionViewSource::GetDefaultView(Playlist);
 
-	txtFilter->BeginInit();
-	grid->Children->Add(txtFilter);
-	txtFilter->SetValue(Grid::RowProperty, (Object^)0);
-	txtFilter->Margin = *gcnew Thickness(1);
 	txtFilter->Height = txtFilter->FontSize * txtFilter->FontFamily->LineSpacing * 1.25;
-	txtFilter->TextWrapping = TextWrapping::NoWrap;
-	txtFilter->TabIndex = 0;
 	txtFilter->TextChanged += gcnew TextChangedEventHandler(this, &PluginWindow::txtFilter_TextChanged);
 	txtFilter->KeyDown += gcnew System::Windows::Input::KeyEventHandler(this, &PluginWindow::txtFilter_KeyDown);
-	txtFilter->EndInit();
 
-	lstPlaylist->BeginInit();
-	grid->Children->Add(lstPlaylist);
-	lstPlaylist->SetValue(Grid::RowProperty, (Object^)1);
-	lstPlaylist->Margin = *gcnew Thickness(1);
 	lstPlaylist->ItemsSource = this->Playlist;
-	lstPlaylist->TabIndex = 1;
 	lstPlaylist->KeyDown += gcnew System::Windows::Input::KeyEventHandler(this, &PluginWindow::lstPlaylist_KeyDown);
 	lstPlaylist->MouseDoubleClick += gcnew System::Windows::Input::MouseButtonEventHandler(this, &PluginWindow::lstPlaylist_MouseDoubleClick);
 	PlaylistView->Filter = gcnew Predicate<Object^>(this, &PluginWindow::Filter);
-	lstPlaylist->EndInit();
-
-	grid->EndInit();
 
 	SAFcallback = gcnew Action(this, &PluginWindow::ShowAndFocus);
 	RLcallback = gcnew Action(this, &PluginWindow::RefreshList);

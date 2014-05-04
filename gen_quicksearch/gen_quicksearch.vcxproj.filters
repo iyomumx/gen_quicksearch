@@ -43,4 +43,12 @@
     <None Include="..\LICENSE.md" />
     <None Include="..\README.md" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resource.resx">
+      <Filter>资源文件</Filter>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="MainWindow.xaml.txt" />
+  </ItemGroup>
 </Project>
