@@ -14,7 +14,6 @@ ViewModel::ViewModel()
 	_xs->UnknownNode += dynamic_cast<XmlNodeEventHandler^>(gcnew EventHandler(this, &ViewModel::OnUnknown));
 }
 
-
 void ViewModel::Save()
 {
 	using namespace System::Xml::Serialization;
@@ -22,7 +21,7 @@ void ViewModel::Save()
 	FileStream^ fs = nullptr;
 	try
 	{
-		fs = File::OpenWrite(this->_savePath);
+		fs = File::Open(this->_savePath, FileMode::Create, FileAccess::Write, FileShare::None);
 		_xs->Serialize(fs, this);
 	}
 	catch (Exception^){}
@@ -34,7 +33,6 @@ void ViewModel::Save()
 		}
 	}
 }
-
 
 ViewModel ^ ViewModel::Load(String^ path)
 {
@@ -59,7 +57,6 @@ ViewModel ^ ViewModel::Load(String^ path)
 	return result;
 }
 
-
 void ViewModel::OnPropertyChanged(String ^ propertyName)
 {
 	using System::Threading::Monitor;
@@ -73,6 +70,5 @@ void ViewModel::OnPropertyChanged(String ^ propertyName)
 		Monitor::Exit(this);
 	}
 }
-
 
 void ViewModel::OnUnknown(Object^, EventArgs^) { }
