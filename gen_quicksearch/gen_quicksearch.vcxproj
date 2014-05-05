@@ -93,6 +93,7 @@
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ViewModel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PresentationCore">
@@ -100,6 +101,7 @@
     </Reference>
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
@@ -109,6 +111,7 @@
     <ClInclude Include="PluginWindow.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Track.h" />
+    <ClInclude Include="ViewModel.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE.md" />

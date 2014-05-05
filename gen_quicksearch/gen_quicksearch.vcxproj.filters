@@ -24,6 +24,9 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="ViewModel.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PluginWindow.h">
@@ -36,6 +39,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="gen_quicksearch.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewModel.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

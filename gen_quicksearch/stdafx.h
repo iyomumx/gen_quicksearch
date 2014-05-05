@@ -15,5 +15,6 @@ extern api_service *serviceManager;
 #pragma managed(pop)
 
 #include "Track.h"
+#include "ViewModel.h"
 #include "PluginWindow.h"
 #include "gen_quicksearch.h"

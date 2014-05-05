@@ -3,7 +3,7 @@
 
 #define HIDE(window) (window)->Visibility = System::Windows::Visibility::Collapsed
 #define ISVISIBLE(window) ((window)->Visibility == System::Windows::Visibility::Visible)
-
+#define INIT_BINDING(BINDING,PATH) BINDING=gcnew System::Windows::Data::Binding(PATH);BINDING->Mode = System::Windows::Data::BindingMode::TwoWay;BINDING->NotifyOnSourceUpdated = true;BINDING->NotifyOnTargetUpdated = true
 PluginWindow::PluginWindow()
 {
 	InitializeComponent();
@@ -25,8 +25,15 @@ void PluginWindow::InitializeComponent()
 	//初始化与组件设定
 	//窗体属性
 	this->BeginInit();
-	this->Height = SystemParameters::WorkArea.Height / 2;
-	this->Width = SystemParameters::WorkArea.Width / 4;
+	this->DataContext = ViewModel::Load(System::IO::Path::Combine(Environment::GetFolderPath(Environment::SpecialFolder::ApplicationData), "Winamp", "gen_quicksearch.xml"));
+	auto INIT_BINDING(b, "WindowHeight");
+	this->SetBinding(Window::HeightProperty, b);
+	INIT_BINDING(b, "WindowWidth");
+	this->SetBinding(Window::WidthProperty, b);
+	INIT_BINDING(b, "WindowTop");
+	this->SetBinding(Window::TopProperty, b);
+	INIT_BINDING(b, "WindowLeft");
+	this->SetBinding(Window::LeftProperty, b);
 	this->Topmost = true;
 	this->ShowInTaskbar = false;
 	this->Visibility = System::Windows::Visibility::Hidden;
@@ -144,6 +151,10 @@ void PluginWindow::OnClosing(System::ComponentModel::CancelEventArgs ^e)
 	{
 		e->Cancel = true;
 		HIDE(this);
+	}
+	else
+	{
+		dynamic_cast<ViewModel^>(this->DataContext)->Save();
 	}
 }
 
