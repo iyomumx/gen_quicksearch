@@ -1,10 +1,11 @@
 #include "stdafx.h"
 #include "PluginWindow.h"
 
-#define SETSETTING(window,b) dynamic_cast<ViewModel^>(window->DataContext)->OnSetting = b
+#define SETSETTING(window,b) window->_viewModel->OnSetting = b
 #define HIDE(window) (SETSETTING(window, false)),((window)->Visibility = System::Windows::Visibility::Collapsed)
 #define ISVISIBLE(window) ((window)->Visibility == System::Windows::Visibility::Visible)
 #define INIT_BINDING(BINDING,PATH) BINDING=gcnew System::Windows::Data::Binding(PATH);BINDING->Mode = System::Windows::Data::BindingMode::TwoWay;BINDING->NotifyOnSourceUpdated = true;BINDING->NotifyOnTargetUpdated = true
+
 PluginWindow::PluginWindow()
 {
 	InitializeComponent();
@@ -26,7 +27,8 @@ void PluginWindow::InitializeComponent()
 	//初始化与组件设定
 	//窗体属性
 	this->BeginInit();
-	this->DataContext = ViewModel::Load(System::IO::Path::Combine(Environment::GetFolderPath(Environment::SpecialFolder::ApplicationData), "Winamp", "gen_quicksearch.xml"));
+	this->_viewModel = ViewModel::Load(System::IO::Path::Combine(Environment::GetFolderPath(Environment::SpecialFolder::ApplicationData), "Winamp", "gen_quicksearch.xml"));
+	this->DataContext = this->_viewModel;
 	auto INIT_BINDING(b, "WindowHeight");
 	this->SetBinding(Window::HeightProperty, b);
 	INIT_BINDING(b, "WindowWidth");
@@ -96,13 +98,17 @@ void PluginWindow::InitializeComponent()
 
 bool PluginWindow::Filter(Object^ obj)
 {
-	if ((obj != nullptr) && (obj->GetType() == Track::typeid))
+	Track^ t = dynamic_cast<Track^>(obj);
+	if (t != nullptr)
 	{
-		Track^ t = (Track^)obj;
-		return	t->Filename->ToUpper()->Contains(txtFilter->Text->ToUpper()) ||
-			t->Title->ToUpper()->Contains(txtFilter->Text->ToUpper());
+		return
+			t->Filename->ToUpper()->Contains(this->_viewModel->FilterString->ToUpper()) ||
+			t->Title->ToUpper()->Contains(this->_viewModel->FilterString->ToUpper());
 	}
-	return obj->ToString()->Contains(txtFilter->Text);
+	else
+	{
+		return obj->ToString()->Contains(txtFilter->Text);
+	}
 }
 
 void PluginWindow::RefreshList()
@@ -155,7 +161,7 @@ void PluginWindow::OnClosing(System::ComponentModel::CancelEventArgs ^e)
 	}
 	else
 	{
-		dynamic_cast<ViewModel^>(this->DataContext)->Save();
+		this->_viewModel->Save();
 	}
 }
 
@@ -231,10 +237,9 @@ void PluginWindow::lstPlaylist_MouseDoubleClick(System::Object ^sender, System::
 	{
 		if (obj->GetType() == ListBoxItem::typeid)
 		{
-			Object^ t = (dynamic_cast<ListBoxItem^>(obj))->DataContext;
-			if (t->GetType() == Track::typeid)
+			if (Track^ t = dynamic_cast<Track^>((dynamic_cast<ListBoxItem^>(obj))->DataContext))
 			{
-				PlayIndex(Playlist->IndexOf(dynamic_cast<Track^>(t)));
+				PlayIndex(Playlist->IndexOf(t));
 				HIDE(this);
 			}
 			break;
@@ -270,8 +275,9 @@ void PluginWindow::ShowAndFocus()
 
 void PluginWindow::ShowSetting()
 {
-	dynamic_cast<ViewModel^>(PluginWindow::MainWindow->DataContext)->OnSetting = true;
+	SETSETTING(this, true);
 	ShowAndFocus();
+	this->Focus();
 }
 
 void PluginWindow::AsyncInvoke(Action^ callback)

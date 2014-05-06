@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "ViewModel.h"
 
 ViewModel::ViewModel()
 {
@@ -9,6 +8,7 @@ ViewModel::ViewModel()
 	_windowLeft = SystemParameters::WorkArea.Width / 4;
 	_windowTop = SystemParameters::WorkArea.Height / 4;
 	_onSetting = false;
+	_filterString = String::Empty;
 	_xs = gcnew XmlSerializer(ViewModel::typeid);
 	_xs->UnknownAttribute += dynamic_cast<XmlAttributeEventHandler^>(gcnew EventHandler(this, &ViewModel::OnUnknown));
 	_xs->UnknownElement += dynamic_cast<XmlElementEventHandler^>(gcnew EventHandler(this, &ViewModel::OnUnknown));

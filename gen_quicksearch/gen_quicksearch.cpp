@@ -71,7 +71,6 @@ void mRefreshList()
 
 void config()
 {
-	//::MessageBox(plugin.hwndParent, _T("目前还没有可设置的选项"), _T("施工中"), MB_OK);
 	ShowConfig();
 }
 
