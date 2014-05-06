@@ -1,7 +1,8 @@
 #include "stdafx.h"
 #include "PluginWindow.h"
 
-#define HIDE(window) (window)->Visibility = System::Windows::Visibility::Collapsed
+#define SETSETTING(window,b) dynamic_cast<ViewModel^>(window->DataContext)->OnSetting = b
+#define HIDE(window) (SETSETTING(window, false)),((window)->Visibility = System::Windows::Visibility::Collapsed)
 #define ISVISIBLE(window) ((window)->Visibility == System::Windows::Visibility::Visible)
 #define INIT_BINDING(BINDING,PATH) BINDING=gcnew System::Windows::Data::Binding(PATH);BINDING->Mode = System::Windows::Data::BindingMode::TwoWay;BINDING->NotifyOnSourceUpdated = true;BINDING->NotifyOnTargetUpdated = true
 PluginWindow::PluginWindow()
@@ -265,6 +266,12 @@ void PluginWindow::ShowAndFocus()
 	txtFilter->Text = String::Empty;
 	PlaylistView->MoveCurrentToFirst();
 	lstPlaylist->SelectedItem = PlaylistView->CurrentItem;
+}
+
+void PluginWindow::ShowSetting()
+{
+	dynamic_cast<ViewModel^>(PluginWindow::MainWindow->DataContext)->OnSetting = true;
+	ShowAndFocus();
 }
 
 void PluginWindow::AsyncInvoke(Action^ callback)

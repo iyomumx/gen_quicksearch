@@ -28,6 +28,9 @@ public:
 	NOTIFY_CHANGED_PROPERTY(double, WindowWidth, _windowWidth);
 	NOTIFY_CHANGED_PROPERTY(double, WindowLeft, _windowLeft);
 	NOTIFY_CHANGED_PROPERTY(double, WindowTop, _windowTop);
+	//∑«…Ë÷√œÓ
+	[XmlIgnoreAttribute()]
+	NOTIFY_CHANGED_PROPERTY(bool, OnSetting, _onSetting);
 private:
 	ViewModel();
 	double _windowHeight;
@@ -38,5 +41,6 @@ private:
 	double _windowTop;
 	void OnPropertyChanged(String ^ propertyName);
 	void OnUnknown(System::Object^, EventArgs^);
+	bool _onSetting;
 };
 #undef NOTIFY_CHANGED_PROPERTY

@@ -55,6 +55,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="MainWindow.xaml.txt" />
+    <Text Include="MainWindow.xaml" />
   </ItemGroup>
 </Project>

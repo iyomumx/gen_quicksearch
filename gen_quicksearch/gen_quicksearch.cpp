@@ -52,18 +52,14 @@ void quit()
 	PluginWindow::MainWindow->Invoke(gcnew Action(PluginWindow::MainWindow, &PluginWindow::Close));
 }
 
-#pragma unmanaged
-
-void config()
-{
-	::MessageBox(plugin.hwndParent, _T("目前还没有可设置的选项"), _T("施工中"), MB_OK);
-}
-
-#pragma managed
-
-void mShowAndFocus()
+inline void mShowAndFocus()
 {
 	PluginWindow::MainWindow->AsyncInvoke(PluginWindow::MainWindow->SAFcallback);
+}
+
+void ShowConfig()
+{
+	PluginWindow::MainWindow->Invoke(gcnew Action(PluginWindow::MainWindow, &PluginWindow::ShowSetting));
 }
 
 void mRefreshList()
@@ -72,6 +68,12 @@ void mRefreshList()
 }
 
 #pragma unmanaged
+
+void config()
+{
+	//::MessageBox(plugin.hwndParent, _T("目前还没有可设置的选项"), _T("施工中"), MB_OK);
+	ShowConfig();
+}
 
 //鉴于WndProc在非托管部分运行，而刷新列表和显示窗口相对于其他Windows消息出现机会更少
 //故将此函数以非托管代码部分编译，保证程序效率，避免对CallWindowProc的C++ Interop

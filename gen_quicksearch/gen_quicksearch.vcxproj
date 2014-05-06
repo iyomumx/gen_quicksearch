@@ -121,7 +121,7 @@
     <EmbeddedResource Include="Resource.resx" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="MainWindow.xaml.txt" />
+    <Text Include="MainWindow.xaml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
