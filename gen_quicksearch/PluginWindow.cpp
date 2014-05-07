@@ -107,7 +107,7 @@ bool PluginWindow::Filter(Object^ obj)
 	}
 	else
 	{
-		return obj->ToString()->Contains(txtFilter->Text);
+		return (obj ? obj : String::Empty)->ToString()->Contains(txtFilter->Text);
 	}
 }
 
