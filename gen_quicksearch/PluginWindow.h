@@ -42,6 +42,8 @@ private:
 	void lstPlaylist_KeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e);
 	void lstPlaylist_MouseDoubleClick(System::Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e);
 	bool Filter(Object^ obj);
+	System::Text::RegularExpressions::Regex^ filterRegex;
+	void ResetRegex();
 protected:
 	void OnDeactivated(EventArgs^ e) override;
 	void OnClosing(System::ComponentModel::CancelEventArgs^ e) override;

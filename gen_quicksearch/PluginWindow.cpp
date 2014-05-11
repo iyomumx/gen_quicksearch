@@ -83,6 +83,7 @@ void PluginWindow::InitializeComponent()
 	RLcallback = gcnew Action(this, &PluginWindow::RefreshList);
 	this->PlaylistLock = gcnew Object();
 	this->EndInit();
+	this->ResetRegex();
 	this->RefreshList();
 	//非托管项设置，延迟到此处避免JTFE未加载而无法获得API接口
 	factory = WASABI_API_SVC->service_getServiceByGuid(QueueManagerApiGUID);
@@ -99,15 +100,29 @@ void PluginWindow::InitializeComponent()
 bool PluginWindow::Filter(Object^ obj)
 {
 	Track^ t = dynamic_cast<Track^>(obj);
-	if (t != nullptr)
+	if (this->_viewModel->UseRegex)
 	{
-		return
-			t->Filename->ToUpper()->Contains(this->_viewModel->FilterString->ToUpper()) ||
-			t->Title->ToUpper()->Contains(this->_viewModel->FilterString->ToUpper());
+		if (filterRegex == nullptr || filterRegex->Match(t->Filename)->Success || filterRegex->Match(t->Title)->Success)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	else
 	{
-		return (obj ? obj : String::Empty)->ToString()->Contains(txtFilter->Text);
+		if (t != nullptr)
+		{
+			return
+				t->Filename->ToUpper()->Contains(this->_viewModel->FilterString->ToUpper()) ||
+				t->Title->ToUpper()->Contains(this->_viewModel->FilterString->ToUpper());
+		}
+		else
+		{
+			return (obj ? obj : String::Empty)->ToString()->Contains(txtFilter->Text);
+		}
 	}
 }
 
@@ -168,6 +183,7 @@ void PluginWindow::OnClosing(System::ComponentModel::CancelEventArgs ^e)
 void PluginWindow::txtFilter_TextChanged(System::Object ^sender, TextChangedEventArgs ^e)
 {
 	if (Visibility != System::Windows::Visibility::Visible) return;
+	ResetRegex();
 	PlaylistView->Refresh();
 }
 
@@ -326,4 +342,18 @@ void PluginWindow::PlayIndex(int index)
 {
 	SendMessage(plugin.hwndParent, WM_WA_IPC, (WPARAM)index, IPC_SETPLAYLISTPOS);
 	SendMessage(plugin.hwndParent, WM_COMMAND, MAKEWPARAM(WINAMP_BUTTON2, 0), 0);
+}
+
+
+void PluginWindow::ResetRegex()
+{
+	using namespace System::Text::RegularExpressions;
+	try
+	{
+		this->filterRegex = gcnew Regex(this->_viewModel->FilterString, RegexOptions::IgnoreCase);
+	}
+	catch (Exception^)
+	{
+		this->filterRegex = nullptr;
+	}
 }

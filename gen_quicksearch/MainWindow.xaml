@@ -5,7 +5,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <TextBox Grid.Row="0" Margin="1" TextWrapping="NoWrap" TabIndex="0" Text="{Binding Path=FilterString, UpdateSourceTrigger=PropertyChanged}"/>
-        <ListBox Grid.Row="1" Margin="1" TabIndex="1"/>
+        <ListBox Grid.Row="1" Margin="1" TabIndex="1" DisplayMemberPath="Title"/>
         <ScrollViewer CanContentScroll="False" Margin="1" Grid.RowSpan="2">
             <ScrollViewer.Visibility>
                 <Binding Path="OnSetting" Mode="OneWay">
@@ -23,6 +23,7 @@
                 <TextBox Text="{Binding Path=WindowHeight}" HorizontalAlignment="Left" Margin="20,2,2,2" Padding="2" MinWidth="50" TextAlignment="Right"/>
                 <Label Content="窗口宽：" HorizontalAlignment="Left"/>
                 <TextBox Text="{Binding Path=WindowWidth}" HorizontalAlignment="Left" Margin="20,2,2,2" Padding="2" MinWidth="50" TextAlignment="Right"/>
+                <CheckBox IsChecked="{Binding Path=UseRegex}" Margin="12,2,2,2" Content="使用正则表达式"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>

@@ -28,6 +28,7 @@ public:
 	NOTIFY_CHANGED_PROPERTY(double, WindowWidth, _windowWidth);
 	NOTIFY_CHANGED_PROPERTY(double, WindowLeft, _windowLeft);
 	NOTIFY_CHANGED_PROPERTY(double, WindowTop, _windowTop);
+	NOTIFY_CHANGED_PROPERTY(bool, UseRegex, _useRegex);
 	//Runtime Only
 	[XmlIgnoreAttribute()]
 	NOTIFY_CHANGED_PROPERTY(bool, OnSetting, _onSetting);
@@ -41,6 +42,7 @@ private:
 	System::Xml::Serialization::XmlSerializer ^ _xs;
 	double _windowLeft;
 	double _windowTop;
+	bool _useRegex;
 	void OnPropertyChanged(String ^ propertyName);
 	void OnUnknown(System::Object^, EventArgs^);
 	bool _onSetting;
