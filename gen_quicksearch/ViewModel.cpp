@@ -62,14 +62,18 @@ ViewModel ^ ViewModel::Load(String^ path)
 void ViewModel::OnPropertyChanged(String ^ propertyName)
 {
 	using System::Threading::Monitor;
+	bool acquried = false;
 	try
 	{
-		Monitor::Enter(this);
+		Monitor::Enter(this, acquried);
 		this->PropertyChanged(this, gcnew System::ComponentModel::PropertyChangedEventArgs(propertyName));
 	}
 	finally
 	{
-		Monitor::Exit(this);
+		if (acquried)
+		{
+			Monitor::Exit(this);
+		}
 	}
 }
 

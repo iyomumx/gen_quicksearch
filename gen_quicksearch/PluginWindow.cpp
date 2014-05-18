@@ -129,9 +129,14 @@ bool PluginWindow::Filter(Object^ obj)
 void PluginWindow::RefreshList()
 {
 	using System::Threading::Monitor;
-	if ((PlaylistLock != nullptr) && (Monitor::TryEnter(PlaylistLock, 0)))
+	bool acquried = false;
+	try
 	{
-		try
+		if (PlaylistLock != nullptr)
+		{
+			Monitor::TryEnter(PlaylistLock, 0, acquried);
+		}
+		if (acquried == true)
 		{
 			int i, length = GetListLength();
 			Action<Track^>^ add = gcnew Action<Track^>(Playlist, &ObservableCollection<Track^>::Add);
@@ -141,7 +146,10 @@ void PluginWindow::RefreshList()
 				this->AsyncInvoke(add, gcnew Track(GetPlayListFile(i), GetPlayListTitle(i)));
 			}
 		}
-		finally
+	}
+	finally
+	{
+		if (acquried == true)
 		{
 			Monitor::Exit(PlaylistLock);
 		}
