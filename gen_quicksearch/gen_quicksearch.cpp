@@ -2,15 +2,27 @@
 
 using namespace System;
 
+#pragma unmanaged
+
 extern "C" __declspec(dllexport) winampGeneralPurposePlugin * winampGetGeneralPurposePlugin() { return &plugin; }
 extern "C" __declspec(dllexport) int winampUninstallPlugin(HINSTANCE hDllInst, HWND hwndDlg, int param) { return 0x0; }
 
-int init()
+#pragma managed
+
+void mInit()
 {
-	//在新线程中进行WPF初始化
 	auto t = gcnew System::Threading::Thread(gcnew System::Threading::ThreadStart(&PluginWindow::Init));
 	t->ApartmentState = System::Threading::ApartmentState::STA;
 	t->Start();
+}
+
+#pragma unmanaged
+
+//非托管代码较多而托管代码只涉及新线程，故将此函数编译为非托管代码
+int init()
+{
+	//在新线程中进行WPF初始化
+	mInit();
 	//处理Windows消息
 	fUnicode = IsWindowUnicode(plugin.hwndParent);
 	oldWndProc = (WNDPROC)((fUnicode) ?
@@ -32,29 +44,50 @@ int init()
 	return 0;
 }
 
+#pragma managed
+
 void quit()
 {
 	PluginWindow::MainWindow->IsClosing = true;
 	PluginWindow::MainWindow->Invoke(gcnew Action(PluginWindow::MainWindow, &PluginWindow::Close));
 }
 
-void config()
+inline void mShowAndFocus()
 {
-	::MessageBox(plugin.hwndParent, _T("目前还没有可设置的选项"), _T("施工中"), MB_OK);
+	PluginWindow::MainWindow->AsyncInvoke(PluginWindow::MainWindow->SAFcallback);
 }
 
+void ShowConfig()
+{
+	PluginWindow::MainWindow->Invoke(gcnew Action(PluginWindow::MainWindow, &PluginWindow::ShowSetting));
+}
+
+void mRefreshList()
+{
+	PluginWindow::MainWindow->RLcallback->BeginInvoke(nullptr, nullptr);
+}
+
+#pragma unmanaged
+
+void config()
+{
+	ShowConfig();
+}
+
+//鉴于WndProc在非托管部分运行，而刷新列表和显示窗口相对于其他Windows消息出现机会更少
+//故将此函数以非托管代码部分编译，保证程序效率，避免对CallWindowProc的C++ Interop
 LRESULT WINAPI WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	if (msg == hotkey.uMsg)
 	{
 		//Hotkey is Pressed
-		PluginWindow::MainWindow->AsyncInvoke(PluginWindow::MainWindow->SAFcallback);
+		mShowAndFocus();
 	}
 	else if (msg == WM_WA_IPC)
 	{
 		if (lParam == IPC_PLAYLIST_MODIFIED)
 		{
-			PluginWindow::MainWindow->RLcallback->BeginInvoke(nullptr, nullptr);
+			mRefreshList();
 		}
 	}
 	return (fUnicode) ? CallWindowProcW(oldWndProc, hwnd, msg, wParam, lParam) : CallWindowProcA(oldWndProc, hwnd, msg, wParam, lParam);

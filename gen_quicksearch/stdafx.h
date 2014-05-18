@@ -1,4 +1,5 @@
 #pragma once
+#pragma managed(push,off)
 
 #include <Windows.h>
 #include <tchar.h>
@@ -11,6 +12,9 @@ extern api_service *serviceManager;
 #include <api\service\waServiceFactory.h>
 #include <..\Agave\Config\api_config.h>
 
+#pragma managed(pop)
+
 #include "Track.h"
+#include "ViewModel.h"
 #include "PluginWindow.h"
 #include "gen_quicksearch.h"

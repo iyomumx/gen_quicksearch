@@ -1,8 +1,10 @@
 #include "stdafx.h"
 #include "PluginWindow.h"
 
-#define HIDE(window) (window)->Visibility = System::Windows::Visibility::Collapsed
+#define SETSETTING(window,b) window->_viewModel->OnSetting = b
+#define HIDE(window) (SETSETTING(window, false)),((window)->Visibility = System::Windows::Visibility::Collapsed)
 #define ISVISIBLE(window) ((window)->Visibility == System::Windows::Visibility::Visible)
+#define INIT_BINDING(BINDING,PATH) BINDING=gcnew System::Windows::Data::Binding(PATH);BINDING->Mode = System::Windows::Data::BindingMode::TwoWay;BINDING->NotifyOnSourceUpdated = true;BINDING->NotifyOnTargetUpdated = true
 
 PluginWindow::PluginWindow()
 {
@@ -24,8 +26,17 @@ void PluginWindow::InitializeComponent()
 {
 	//初始化与组件设定
 	//窗体属性
-	this->Height = SystemParameters::WorkArea.Height / 2;
-	this->Width = SystemParameters::WorkArea.Width / 4;
+	this->BeginInit();
+	this->_viewModel = ViewModel::Load(System::IO::Path::Combine(Environment::GetFolderPath(Environment::SpecialFolder::ApplicationData), "Winamp", "gen_quicksearch.xml"));
+	this->DataContext = this->_viewModel;
+	auto INIT_BINDING(b, "WindowHeight");
+	this->SetBinding(Window::HeightProperty, b);
+	INIT_BINDING(b, "WindowWidth");
+	this->SetBinding(Window::WidthProperty, b);
+	INIT_BINDING(b, "WindowTop");
+	this->SetBinding(Window::TopProperty, b);
+	INIT_BINDING(b, "WindowLeft");
+	this->SetBinding(Window::LeftProperty, b);
 	this->Topmost = true;
 	this->ShowInTaskbar = false;
 	this->Visibility = System::Windows::Visibility::Hidden;
@@ -33,43 +44,46 @@ void PluginWindow::InitializeComponent()
 	this->ResizeMode = System::Windows::ResizeMode::NoResize;
 	this->PreviewKeyDown += gcnew System::Windows::Input::KeyEventHandler(this, &PluginWindow::window_PreviewKeyDown);
 	this->IsClosing = false;
+
+	Grid ^ grid;
+	{
+		using System::Resources::ResourceManager;
+		auto rm = gcnew ResourceManager(this->GetType());
+		auto xr = dynamic_cast<ResourceDictionary^>(System::Windows::Markup::XamlReader::Parse(rm->GetObject("Resource.xaml")->ToString()));
+		grid = dynamic_cast<Grid^>(xr["grid"]);
+	}
+	for each (Object^ o in grid->Children)
+	{
+		if (o->GetType() == TextBox::typeid)
+		{
+			txtFilter = dynamic_cast<TextBox^>(o);
+		}
+		else if (o->GetType() == ListBox::typeid)
+		{
+			lstPlaylist = dynamic_cast<ListBox^>(o);
+		}
+	}
+
 	//子控件
-	Grid ^ grid = gcnew Grid();
+
 	this->Content = grid;
-	grid->Margin = *gcnew Thickness(2);
-
-	RowDefinition ^ rd;
-	grid->RowDefinitions->Add(rd = gcnew RowDefinition());
-	rd->Height = GridLength::Auto;
-	grid->RowDefinitions->Add(rd = gcnew RowDefinition());
-	rd->Height = *gcnew GridLength(1, GridUnitType::Star);
-
-	txtFilter = gcnew TextBox();
-	lstPlaylist = gcnew ListBox();
 	Playlist = gcnew ObservableCollection<Track^>();
 	PlaylistView = (CollectionView^)CollectionViewSource::GetDefaultView(Playlist);
 
-	grid->Children->Add(txtFilter);
-	txtFilter->SetValue(Grid::RowProperty, (Object^)0);
-	txtFilter->Margin = *gcnew Thickness(1);
 	txtFilter->Height = txtFilter->FontSize * txtFilter->FontFamily->LineSpacing * 1.25;
-	txtFilter->TextWrapping = TextWrapping::NoWrap;
-	txtFilter->TabIndex = 0;
 	txtFilter->TextChanged += gcnew TextChangedEventHandler(this, &PluginWindow::txtFilter_TextChanged);
 	txtFilter->KeyDown += gcnew System::Windows::Input::KeyEventHandler(this, &PluginWindow::txtFilter_KeyDown);
 
-	grid->Children->Add(lstPlaylist);
-	lstPlaylist->SetValue(Grid::RowProperty, (Object^)1);
-	lstPlaylist->Margin = *gcnew Thickness(1);
 	lstPlaylist->ItemsSource = this->Playlist;
-	lstPlaylist->TabIndex = 1;
 	lstPlaylist->KeyDown += gcnew System::Windows::Input::KeyEventHandler(this, &PluginWindow::lstPlaylist_KeyDown);
 	lstPlaylist->MouseDoubleClick += gcnew System::Windows::Input::MouseButtonEventHandler(this, &PluginWindow::lstPlaylist_MouseDoubleClick);
 	PlaylistView->Filter = gcnew Predicate<Object^>(this, &PluginWindow::Filter);
 
 	SAFcallback = gcnew Action(this, &PluginWindow::ShowAndFocus);
 	RLcallback = gcnew Action(this, &PluginWindow::RefreshList);
-	this->PlaylistLock = gcnew System::Threading::Mutex();
+	this->PlaylistLock = gcnew Object();
+	this->EndInit();
+	this->ResetRegex();
 	this->RefreshList();
 	//非托管项设置，延迟到此处避免JTFE未加载而无法获得API接口
 	factory = WASABI_API_SVC->service_getServiceByGuid(QueueManagerApiGUID);
@@ -85,27 +99,60 @@ void PluginWindow::InitializeComponent()
 
 bool PluginWindow::Filter(Object^ obj)
 {
-	if ((obj != nullptr) && (obj->GetType() == Track::typeid))
+	Track^ t = dynamic_cast<Track^>(obj);
+	if (this->_viewModel->UseRegex)
 	{
-		Track^ t = (Track^)obj;
-		return	t->Filename->ToUpper()->Contains(txtFilter->Text->ToUpper()) ||
-			t->Title->ToUpper()->Contains(txtFilter->Text->ToUpper());
+		if (filterRegex == nullptr || filterRegex->Match(t->Filename)->Success || filterRegex->Match(t->Title)->Success)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
-	return obj->ToString()->Contains(txtFilter->Text);
+	else
+	{
+		if (t != nullptr)
+		{
+			return
+				t->Filename->ToUpper()->Contains(this->_viewModel->FilterString->ToUpper()) ||
+				t->Title->ToUpper()->Contains(this->_viewModel->FilterString->ToUpper());
+		}
+		else
+		{
+			return (obj ? obj : String::Empty)->ToString()->Contains(txtFilter->Text);
+		}
+	}
 }
 
 void PluginWindow::RefreshList()
 {
-	if (PlaylistLock->WaitOne(0))
+	using System::Threading::Monitor;
+	bool acquried = false;
+	try
 	{
-		int i, length = GetListLength();
-		Action<Track^>^ add = gcnew Action<Track^>(Playlist, &ObservableCollection<Track^>::Add);
-		this->Invoke(gcnew Action(Playlist, &ObservableCollection<Track^>::Clear));
-		for (i = 0; i < length; i++)
+		if (PlaylistLock != nullptr)
 		{
-			this->AsyncInvoke(add, gcnew Track(GetPlayListFile(i), GetPlayListTitle(i)));
+			Monitor::TryEnter(PlaylistLock, 0, acquried);
 		}
-		PlaylistLock->ReleaseMutex();
+		if (acquried == true)
+		{
+			int i, length = GetListLength();
+			Action<Track^>^ add = gcnew Action<Track^>(Playlist, &ObservableCollection<Track^>::Add);
+			this->Invoke(gcnew Action(Playlist, &ObservableCollection<Track^>::Clear));
+			for (i = 0; i < length; i++)
+			{
+				this->AsyncInvoke(add, gcnew Track(GetPlayListFile(i), GetPlayListTitle(i)));
+			}
+		}
+	}
+	finally
+	{
+		if (acquried == true)
+		{
+			Monitor::Exit(PlaylistLock);
+		}
 	}
 }
 
@@ -135,11 +182,16 @@ void PluginWindow::OnClosing(System::ComponentModel::CancelEventArgs ^e)
 		e->Cancel = true;
 		HIDE(this);
 	}
+	else
+	{
+		this->_viewModel->Save();
+	}
 }
 
 void PluginWindow::txtFilter_TextChanged(System::Object ^sender, TextChangedEventArgs ^e)
 {
 	if (Visibility != System::Windows::Visibility::Visible) return;
+	ResetRegex();
 	PlaylistView->Refresh();
 }
 
@@ -209,10 +261,9 @@ void PluginWindow::lstPlaylist_MouseDoubleClick(System::Object ^sender, System::
 	{
 		if (obj->GetType() == ListBoxItem::typeid)
 		{
-			Object^ t = (dynamic_cast<ListBoxItem^>(obj))->DataContext;
-			if (t->GetType() == Track::typeid)
+			if (Track^ t = dynamic_cast<Track^>((dynamic_cast<ListBoxItem^>(obj))->DataContext))
 			{
-				PlayIndex(Playlist->IndexOf(dynamic_cast<Track^>(t)));
+				PlayIndex(Playlist->IndexOf(t));
 				HIDE(this);
 			}
 			break;
@@ -244,6 +295,13 @@ void PluginWindow::ShowAndFocus()
 	txtFilter->Text = String::Empty;
 	PlaylistView->MoveCurrentToFirst();
 	lstPlaylist->SelectedItem = PlaylistView->CurrentItem;
+}
+
+void PluginWindow::ShowSetting()
+{
+	SETSETTING(this, true);
+	ShowAndFocus();
+	this->Focus();
 }
 
 void PluginWindow::AsyncInvoke(Action^ callback)
@@ -290,6 +348,24 @@ int PluginWindow::GetListLength()
 
 void PluginWindow::PlayIndex(int index)
 {
+	if (SendMessage(plugin.hwndParent, WM_WA_IPC, 0, IPC_ISPLAYING) != 1)
+	{
+		SendMessage(plugin.hwndParent, WM_WA_IPC, 0, IPC_STARTPLAY);
+	}
 	SendMessage(plugin.hwndParent, WM_WA_IPC, (WPARAM)index, IPC_SETPLAYLISTPOS);
 	SendMessage(plugin.hwndParent, WM_COMMAND, MAKEWPARAM(WINAMP_BUTTON2, 0), 0);
+}
+
+
+void PluginWindow::ResetRegex()
+{
+	using namespace System::Text::RegularExpressions;
+	try
+	{
+		this->filterRegex = gcnew Regex(this->_viewModel->FilterString, RegexOptions::IgnoreCase);
+	}
+	catch (Exception^)
+	{
+		this->filterRegex = nullptr;
+	}
 }

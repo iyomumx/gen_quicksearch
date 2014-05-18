@@ -20,6 +20,7 @@ public:
 	Action^ SAFcallback;
 	void RefreshList();
 	Action^ RLcallback;
+	void ShowSetting();
 	volatile bool IsClosing;
 private:
 	static String^ GetPlayListFile(int index);
@@ -33,13 +34,16 @@ private:
 	ListBox^ lstPlaylist;
 	ObservableCollection<Track^>^ Playlist;
 	CollectionView^ PlaylistView;
-	System::Threading::Mutex^ PlaylistLock;
+	Object^ PlaylistLock;
+	ViewModel^ _viewModel;
 	void window_PreviewKeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e);
 	void txtFilter_TextChanged(System::Object ^sender, System::Windows::Controls::TextChangedEventArgs ^e);
 	void txtFilter_KeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e);
 	void lstPlaylist_KeyDown(System::Object ^sender, System::Windows::Input::KeyEventArgs ^e);
 	void lstPlaylist_MouseDoubleClick(System::Object ^sender, System::Windows::Input::MouseButtonEventArgs ^e);
 	bool Filter(Object^ obj);
+	System::Text::RegularExpressions::Regex^ filterRegex;
+	void ResetRegex();
 protected:
 	void OnDeactivated(EventArgs^ e) override;
 	void OnClosing(System::ComponentModel::CancelEventArgs^ e) override;
