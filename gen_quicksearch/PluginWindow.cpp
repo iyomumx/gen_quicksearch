@@ -350,7 +350,7 @@ void PluginWindow::PlayIndex(int index)
 {
 	if (SendMessage(plugin.hwndParent, WM_WA_IPC, 0, IPC_ISPLAYING) != 1)
 	{
-		SendMessage(plugin.hwndParent, WM_COMMAND, MAKEWPARAM(WINAMP_BUTTON2, 0), 0);
+		SendMessage(plugin.hwndParent, WM_WA_IPC, 0, IPC_STARTPLAY);
 	}
 	SendMessage(plugin.hwndParent, WM_WA_IPC, (WPARAM)index, IPC_SETPLAYLISTPOS);
 	SendMessage(plugin.hwndParent, WM_COMMAND, MAKEWPARAM(WINAMP_BUTTON2, 0), 0);
