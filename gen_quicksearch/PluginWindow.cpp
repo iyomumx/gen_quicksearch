@@ -41,7 +41,7 @@ void PluginWindow::InitializeComponent()
 	this->ShowInTaskbar = false;
 	this->Visibility = System::Windows::Visibility::Hidden;
 	this->WindowStyle = System::Windows::WindowStyle::None;
-	this->ResizeMode = System::Windows::ResizeMode::NoResize;
+    this->ResizeMode = System::Windows::ResizeMode::NoResize;
 	this->PreviewKeyDown += gcnew System::Windows::Input::KeyEventHandler(this, &PluginWindow::window_PreviewKeyDown);
 	this->IsClosing = false;
 
@@ -158,7 +158,7 @@ void PluginWindow::RefreshList()
 
 void PluginWindow::OnSourceInitialized(EventArgs^ e)
 {
-	Window::OnSourceInitialized(e);
+    Window::OnSourceInitialized(e);
 	HIDE(this);
 }
 
@@ -295,6 +295,7 @@ void PluginWindow::ShowAndFocus()
 	txtFilter->Text = String::Empty;
 	PlaylistView->MoveCurrentToFirst();
 	lstPlaylist->SelectedItem = PlaylistView->CurrentItem;
+	lstPlaylist->ScrollIntoView(lstPlaylist->SelectedItem);
 }
 
 void PluginWindow::ShowSetting()
