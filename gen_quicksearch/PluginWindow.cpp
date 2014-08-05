@@ -68,7 +68,7 @@ void PluginWindow::InitializeComponent()
 
 	this->Content = grid;
 	Playlist = gcnew ObservableCollection<Track^>();
-	PlaylistView = (CollectionView^)CollectionViewSource::GetDefaultView(Playlist);
+	PlaylistView = safe_cast<CollectionView^>(CollectionViewSource::GetDefaultView(Playlist));
 
 	txtFilter->Height = txtFilter->FontSize * txtFilter->FontFamily->LineSpacing * 1.25;
 	txtFilter->TextChanged += gcnew TextChangedEventHandler(this, &PluginWindow::txtFilter_TextChanged);
@@ -89,7 +89,7 @@ void PluginWindow::InitializeComponent()
 	factory = WASABI_API_SVC->service_getServiceByGuid(QueueManagerApiGUID);
 	if (factory)
 	{
-		QueueApi = (api_queue *)factory->getInterface();
+        QueueApi = reinterpret_cast<api_queue *>(factory->getInterface());
 	}
 	else
 	{
@@ -102,14 +102,28 @@ bool PluginWindow::Filter(Object^ obj)
 	Track^ t = dynamic_cast<Track^>(obj);
 	if (this->_viewModel->UseRegex)
 	{
-		if (filterRegex == nullptr || filterRegex->Match(t->Filename)->Success || filterRegex->Match(t->Title)->Success)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+        if (t != nullptr)
+        {
+            if (filterRegex == nullptr || filterRegex->Match(t->Filename)->Success || filterRegex->Match(t->Title)->Success)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            if (filterRegex == nullptr || filterRegex->Match((obj ? obj : String::Empty)->ToString())->Success)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }		
 	}
 	else
 	{
@@ -203,7 +217,7 @@ void PluginWindow::txtFilter_KeyDown(System::Object ^sender, System::Windows::In
 	{
 		if (PlaylistView->Count <= 0) return;
 		PlaylistView->MoveCurrentToFirst();
-		PlayIndex(Playlist->IndexOf((Track^)PlaylistView->CurrentItem));
+        PlayIndex(Playlist->IndexOf(safe_cast<Track^>(PlaylistView->CurrentItem)));
 		HIDE(this);
 	}
 	else if (e->Key == System::Windows::Input::Key::Tab)
@@ -233,7 +247,7 @@ void PluginWindow::lstPlaylist_KeyDown(System::Object ^sender, System::Windows::
 	if (!ISVISIBLE(this)) return;
 	if (e->Key == System::Windows::Input::Key::Enter)
 	{
-		PlayIndex(Playlist->IndexOf((Track^)lstPlaylist->SelectedItem));
+        PlayIndex(Playlist->IndexOf(safe_cast<Track^>(lstPlaylist->SelectedItem)));
 		HIDE(this);
 	}
 	else if (e->Key == System::Windows::Input::Key::Tab)
@@ -248,7 +262,7 @@ void PluginWindow::lstPlaylist_KeyDown(System::Object ^sender, System::Windows::
 	}
 	else if (e->Key == System::Windows::Input::Key::Q)
 	{
-		QueueIndex(Playlist->IndexOf((Track^)lstPlaylist->SelectedItem));
+		QueueIndex(Playlist->IndexOf(safe_cast<Track^>(lstPlaylist->SelectedItem)));
 		HIDE(this);
 	}
 }
@@ -334,12 +348,12 @@ void PluginWindow::QueueIndex(int index)
 
 String ^ PluginWindow::GetPlayListFile(int index)
 {
-	return gcnew String((wchar_t*)SendMessage(plugin.hwndParent, WM_WA_IPC, (WPARAM)index, IPC_GETPLAYLISTFILEW));
+	return gcnew String(reinterpret_cast<wchar_t*>(SendMessage(plugin.hwndParent, WM_WA_IPC, (WPARAM)index, IPC_GETPLAYLISTFILEW)));
 }
 
 String ^ PluginWindow::GetPlayListTitle(int index)
 {
-	return gcnew String((wchar_t*)SendMessage(plugin.hwndParent, WM_WA_IPC, (WPARAM)index, IPC_GETPLAYLISTTITLEW));
+    return gcnew String(reinterpret_cast<wchar_t*>(SendMessage(plugin.hwndParent, WM_WA_IPC, (WPARAM)index, IPC_GETPLAYLISTTITLEW)));
 }
 
 int PluginWindow::GetListLength()
@@ -353,7 +367,7 @@ void PluginWindow::PlayIndex(int index)
 	{
 		SendMessage(plugin.hwndParent, WM_WA_IPC, 0, IPC_STARTPLAY);
 	}
-	SendMessage(plugin.hwndParent, WM_WA_IPC, (WPARAM)index, IPC_SETPLAYLISTPOS);
+	SendMessage(plugin.hwndParent, WM_WA_IPC, static_cast<WPARAM>( index ), IPC_SETPLAYLISTPOS);
 	SendMessage(plugin.hwndParent, WM_COMMAND, MAKEWPARAM(WINAMP_BUTTON2, 0), 0);
 }
 
