@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include <api\service\api_service.h>
 #include <api\service\waservicefactory.h>
-#include <..\Agave\Queue\api_queue.h>
+#include "..\Agave\Queue\api_queue.h"
 #include <GEN.H>
 #include <wa_ipc.h>
 
