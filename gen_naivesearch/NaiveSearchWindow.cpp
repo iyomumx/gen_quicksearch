@@ -73,6 +73,7 @@ public:
             listBox->SetHorizontalAlwaysVisible(false);
             listBox->SetMultiSelect(false);
             listBox->ItemLeftButtonDoubleClick.AttachMethod(this, &NaiveSearchWindow::listBox_ItemLeftButtonDoubleClick);
+            listBox->SetVerticalAlwaysVisible(false);
 
             cell->AddChild(listBox->GetBoundsComposition());
         }
