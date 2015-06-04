@@ -158,12 +158,9 @@ public:
             auto index = listBox->GetSelectedItemIndex();
             if (index == -1)
             {
-                listBox->SetFocus();
+                index = 0;
             }
-            else
-            {
-                PlayIndex(dataSource->TranslateIndex(listBox->GetSelectedItemIndex()));
-            }
+            PlayIndex(dataSource->TranslateIndex(index));
         }
         else if (info.code == VKEY_TAB && IsContorlKeyClean(info))
         {
@@ -174,7 +171,20 @@ public:
                 listBox->SetSelected(index, false);
             }
             listBox->SetSelected((index + 1) % count, true);
+            
             listBox->SetFocus();
+        }
+        else if (info.code == VKEY_Q && IsContorlKeyClean(info))
+        {
+            if (p->QueueApi)
+            {
+                auto index = listBox->GetSelectedItemIndex();
+                if (index == -1)
+                {
+                    index = 0;
+                }
+                QueueIndex(p->QueueApi, dataSource->TranslateIndex(index));
+            }
         }
         else if (info.code == VKEY_ESCAPE)
         {
