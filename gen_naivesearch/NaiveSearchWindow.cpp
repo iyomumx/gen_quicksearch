@@ -18,7 +18,7 @@ private:
         return !(info.alt || info.ctrl || info.shift);
     }
 
-    vl::Ptr<vl::presentation::INativeDelay> lastChangeDelay;
+    vl::Ptr<vl::presentation::INativeDelay> lastChangeDelay, refreshPLDelay;
     SearchWindowStartUpParam* p;
 
     void NaiveHide()
@@ -118,10 +118,17 @@ public:
 
     void OnListRefresh() override
     {
-        GetApplication()->InvokeAsync([=]()
+        if (refreshPLDelay)
+        {
+            if (refreshPLDelay->GetStatus() == INativeDelay::Pending)
+            {
+                refreshPLDelay->Cancel();
+            }
+        }
+        refreshPLDelay = GetApplication()->DelayExecute([=]()
         {
             dataSource->UpdatePlaylist(p->Plugin->hwndParent);
-        });
+        }, 200);
     }
 #pragma endregion
 
