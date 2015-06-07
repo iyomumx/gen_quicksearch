@@ -13,9 +13,13 @@ private:
     GuiVirtualTextList* listBox;
     GuiSinglelineTextBox * searchBox;
 
-    static inline bool IsContorlKeyClean(const NativeWindowKeyInfo& info)
+    static inline bool IsContorlKeyClean(
+        const NativeWindowKeyInfo& info,
+        bool altstatus = false,
+        bool ctrlstatus = false,
+        bool shiftstatus = false)
     {
-        return !(info.alt || info.ctrl || info.shift);
+        return (info.alt == altstatus && info.ctrl == ctrlstatus && info.shift == shiftstatus);
     }
 
     vl::Ptr<vl::presentation::INativeDelay> lastChangeDelay, refreshPLDelay;
@@ -160,7 +164,7 @@ public:
 
     void KeyDown(const NativeWindowKeyInfo& info) override
     {
-        if (info.code == VKEY_RETURN && IsContorlKeyClean(info))
+        if (info.code == VKEY_RETURN && IsContorlKeyClean(info)) //Enter
         {
             auto index = listBox->GetSelectedItemIndex();
             if (index == -1)
@@ -169,7 +173,7 @@ public:
             }
             PlayIndex(dataSource->TranslateIndex(index));
         }
-        else if (info.code == VKEY_TAB && IsContorlKeyClean(info))
+        else if (info.code == VKEY_TAB && IsContorlKeyClean(info)) //Tab
         {
             auto index = listBox->GetSelectedItemIndex();
             auto count = dataSource->Count();
@@ -177,11 +181,12 @@ public:
             {
                 listBox->SetSelected(index, false);
             }
-            listBox->SetSelected((index + 1) % count, true);
-            
+            index = (index + 1) % count;
+            listBox->SetSelected(index, true);
+            listBox->EnsureItemVisible(index);
             listBox->SetFocus();
         }
-        else if (info.code == VKEY_Q && IsContorlKeyClean(info))
+        else if (info.code == VKEY_Q && IsContorlKeyClean(info)) //Q
         {
             if (p->QueueApi)
             {
@@ -193,7 +198,7 @@ public:
                 QueueIndex(p->QueueApi, dataSource->TranslateIndex(index));
             }
         }
-        else if (info.code == VKEY_ESCAPE)
+        else if (info.code == VKEY_ESCAPE) //ESC
         {
             this->NaiveHide();
         }
