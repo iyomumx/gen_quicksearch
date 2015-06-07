@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "SearchWindow.h"
 #include "NaiveSearchWindow.h"
+#include "Settings.h"
 
 static SearchWindowStartUpParam * startp;
 
@@ -27,6 +28,15 @@ DWORD WINAPI SearchWindowStart(LPVOID param)
 
 void GuiMain()
 {
+    InitDefaultInstance();
+    try
+    {
+        Settings::Default().Reload();
+    }
+    catch (...)
+    {
+        Settings::Default().Clear();
+    }
     GuiWindow * sw = CreateNaiveSearchWindow(startp);
     GetApplication()->Run(sw);
     delete sw;

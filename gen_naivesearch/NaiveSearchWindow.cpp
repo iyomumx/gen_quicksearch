@@ -3,6 +3,7 @@
 #include "NaiveSearchWindow.h"
 #include "DataSource.h"
 #include "WinampControl.h"
+#include "Settings.h"
 
 class NaiveSearchWindow sealed :
     public vl::presentation::controls::GuiWindow,
@@ -52,7 +53,7 @@ public:
         this->SetTitleBar(false);
         this->SetTopMost(true);
 
-        this->SetBounds({200, 200, 400, 600});
+        this->SetBounds(Settings::Default().WindowBounds());
 
         GuiTableComposition * table = new GuiTableComposition();
         table->SetRowsAndColumns(2, 1);
@@ -134,6 +135,13 @@ public:
 
     void OnExit() override
     {
+        Settings::Default().WindowBounds() = this->GetBounds();
+        try
+        {
+            Settings::Default().Save();
+
+        }
+        catch (...) { }
         GetApplication()->InvokeLambdaInMainThreadAndWait([=](){ this->Close(); }, 500);
     }
 
@@ -219,6 +227,11 @@ public:
                 QueueIndex(p->QueueApi, dataSource->TranslateIndex(index));
                 this->NaiveHide();
             }
+        }
+        else if (info.code == VKEY_S && IsContorlKeyClean(info, true)) //Alt+S
+        {
+            OpenFolderAndSelectFile(Settings::Default().SettingFilePath());
+            //this->SetBorder(!this->GetBorder());
         }
         else if (info.code == VKEY_ESCAPE) //ESC
         {

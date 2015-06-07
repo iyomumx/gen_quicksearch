@@ -18,6 +18,10 @@
 #include <strsafe.h>
 #include <Commdlg.h>
 #include <Shlwapi.h>
+#include <xmllite.h>
+#include <ShlObj.h>
+#include <comip.h>
+#include <PathCch.h>
 
 // TODO:  在此处引用程序需要的其他头文件
 #include <api\service\api_service.h>
