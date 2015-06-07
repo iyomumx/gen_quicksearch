@@ -14,7 +14,7 @@ public:
         if (pld)
         {
             StringCbCopyW(datadir, sizeof(datadir), GetPlayListDir());
-            PathAllocCombine(datadir, L"plugins/gen_naivesearch.setting", 0, &settingPath);
+            PathAllocCombine(datadir, L"plugins\\gen_naivesearch.setting", 0, &settingPath);
         }
         else
         {

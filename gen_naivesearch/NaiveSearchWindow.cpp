@@ -228,11 +228,13 @@ public:
                 this->NaiveHide();
             }
         }
-        else if (info.code == VKEY_S && IsContorlKeyClean(info, true)) //Alt+S
+#ifdef _DEBUG
+        else if (info.code == VKEY_S && IsContorlKeyClean(info, false, true)) //Ctrl+S
         {
             OpenFolderAndSelectFile(Settings::Default().SettingFilePath());
-            //this->SetBorder(!this->GetBorder());
+            this->SetBorder(!this->GetBorder());
         }
+#endif
         else if (info.code == VKEY_ESCAPE) //ESC
         {
             this->NaiveHide();
@@ -255,9 +257,9 @@ public:
             auto bounds = this->GetNativeWindow()->GetClientBoundsInScreen();
             bool isNear =
                 IsNear<16>(location.x, location.y, 0, 0) ||
-                IsNear<16>(location.x, location.y, bounds.x2 - bounds.x1, 0) ||
-                IsNear<16>(location.x, location.y, 0, bounds.y2 - bounds.y1) ||
-                IsNear<16>(location.x, location.y, bounds.x2 - bounds.x1, bounds.y2 - bounds.y1);
+                IsNear<16>(location.x, location.y, bounds.Width(), 0) ||
+                IsNear<16>(location.x, location.y, 0, bounds.Height()) ||
+                IsNear<16>(location.x, location.y, bounds.Width(), bounds.Height());
             if (isNear)
             {
                 ret = HitTestResult::Title;
