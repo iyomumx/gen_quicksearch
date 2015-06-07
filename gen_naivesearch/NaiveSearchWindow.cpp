@@ -31,6 +31,20 @@ private:
         auto thiswinf = vl::presentation::windows::GetWindowsForm(this->GetNativeWindow());
         ShowWindow(thiswinf->GetWindowHandle(), SW_HIDE);
     }
+
+    void NaiveShow()
+    {
+        GuiWindow::Show();
+        auto thiswinf = vl::presentation::windows::GetWindowsForm(this->GetNativeWindow());
+        ShowWindow(thiswinf->GetWindowHandle(), SW_SHOWNORMAL);
+
+        BringWindowToTop(thiswinf->GetWindowHandle());
+        SetForegroundWindow(thiswinf->GetWindowHandle());
+
+        this->SetActivated();
+        searchBox->SelectAll();
+        searchBox->SetFocus();
+    }
 public:
 
     void InitializeComponents()
@@ -45,7 +59,7 @@ public:
         table->SetCellPadding(3);
         table->SetAlignmentToParent({ 0, 0, 0, 0 });
 
-        table->SetRowOption(0, GuiCellOption::AbsoluteOption(30));
+        table->SetRowOption(0, GuiCellOption::AbsoluteOption(26));
         table->SetRowOption(1, GuiCellOption::PercentageOption(1.0));
 
         table->SetColumnOption(0, GuiCellOption::PercentageOption(1.0));
@@ -83,15 +97,18 @@ public:
             listBox->SetMultiSelect(false);
             listBox->ItemLeftButtonDoubleClick.AttachMethod(this, &NaiveSearchWindow::listBox_ItemLeftButtonDoubleClick);
             listBox->SetVerticalAlwaysVisible(false);
-
+            
             cell->AddChild(listBox->GetBoundsComposition());
         }
 
         this->GetNativeWindow()->HideInTaskBar();
+        this->SetBorder(false);
         GetApplication()->DelayExecuteInMainThread([this]()
         {
             this->NaiveHide();
-        }, 200);
+            this->Show();
+            this->NaiveHide();
+        }, 50);
 #pragma region Window Events
         this->WindowLostFocus.AttachMethod(this, &NaiveSearchWindow::window_WindowLostFocus);
 #pragma endregion End Window Events
@@ -112,7 +129,7 @@ public:
     void OnConfig() override
     {
         //TODO:Add Config Window
-        Show();
+        Show(true);
     }
 
     void OnExit() override
@@ -148,18 +165,16 @@ public:
     //
     void Show()
     {
+        Show(false);
+    }
+
+    void Show(bool showBorder)
+    {
         auto app = GetApplication();
         if (app->IsInMainThread())
         {
-            GuiWindow::Show();
-            auto thiswinf = vl::presentation::windows::GetWindowsForm(this->GetNativeWindow());
-            ShowWindow(thiswinf->GetWindowHandle(), SW_SHOWNORMAL);
-            BringWindowToTop(thiswinf->GetWindowHandle());
-            SetForegroundWindow(thiswinf->GetWindowHandle());
-
-            this->SetActivated();
-            searchBox->SelectAll();
-            searchBox->SetFocus();
+            this->NaiveShow();
+            this->SetBorder(showBorder);
         }
         else
         {
@@ -177,6 +192,7 @@ public:
                 index = 0;
             }
             PlayIndex(dataSource->TranslateIndex(index));
+            this->NaiveHide();
         }
         else if (info.code == VKEY_TAB && IsContorlKeyClean(info)) //Tab
         {
@@ -201,6 +217,7 @@ public:
                     index = 0;
                 }
                 QueueIndex(p->QueueApi, dataSource->TranslateIndex(index));
+                this->NaiveHide();
             }
         }
         else if (info.code == VKEY_ESCAPE) //ESC
