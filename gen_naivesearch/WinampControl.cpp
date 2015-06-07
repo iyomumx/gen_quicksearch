@@ -37,3 +37,9 @@ int GetListLength()
 {
     return SendMessage(plugin.hwndParent, WM_WA_IPC, 0, IPC_GETLISTLENGTH);
 }
+
+wchar_t * GetPlayListDir()
+{
+    return reinterpret_cast<wchar_t*>(
+        SendMessage(plugin.hwndParent, WM_WA_IPC, 0, IPC_GETM3UDIRECTORYW));
+}
