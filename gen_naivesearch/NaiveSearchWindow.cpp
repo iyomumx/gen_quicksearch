@@ -12,6 +12,7 @@ private:
     DataSource * dataSource;
     GuiVirtualTextList* listBox;
     GuiSinglelineTextBox * searchBox;
+    bool inputing = false;
 
     static inline bool IsContorlKeyClean(
         const NativeWindowKeyInfo& info,
@@ -60,6 +61,10 @@ public:
             searchBox = g::NewTextBox();
             searchBox->GetBoundsComposition()->SetAlignmentToParent({ 0, 0, 0, 0 });
             searchBox->TextChanged.AttachMethod(this, &NaiveSearchWindow::searchBox_TextChanged);
+
+            auto fc = searchBox->GetFocusableComposition()->GetEventReceiver();
+            fc->gotFocus.AttachMethod(this, &NaiveSearchWindow::searchBox_gotFocus);
+            fc->lostFocus.AttachMethod(this, &NaiveSearchWindow::searchBox_lostFocus);
 
             cell->AddChild(searchBox->GetBoundsComposition());
         }
@@ -188,7 +193,7 @@ public:
         }
         else if (info.code == VKEY_Q && IsContorlKeyClean(info)) //Q
         {
-            if (p->QueueApi)
+            if (p->QueueApi && !inputing)
             {
                 auto index = listBox->GetSelectedItemIndex();
                 if (index == -1)
@@ -274,6 +279,16 @@ public:
                 dataSource->UpdateFilter(searchBox->GetText());
             }, 700);
         }
+    }
+
+    void searchBox_gotFocus(GuiGraphicsComposition* sender, GuiEventArgs& e)
+    {
+        inputing = true;
+    }
+
+    void searchBox_lostFocus(GuiGraphicsComposition* sender, GuiEventArgs& e)
+    {
+        inputing = false;
     }
 
     void window_WindowLostFocus(GuiGraphicsComposition* sender, GuiEventArgs& e)
