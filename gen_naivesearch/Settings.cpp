@@ -9,6 +9,7 @@ class NullOnFailSettings
 public:
     static bool InitInstance()
     {
+        static int retry = 0;
         WCHAR datadir[MAX_PATH + 1] = { 0 }, *settingPath = datadir, *pld;
         pld = GetPlayListDir();
         if (pld)
@@ -16,8 +17,9 @@ public:
             StringCbCopyW(datadir, sizeof(datadir), GetPlayListDir());
             PathAllocCombine(datadir, L"plugins\\gen_naivesearch.setting", 0, &settingPath);
         }
-        else
+        else if (retry < 5)
         {
+            retry++;
             return false;
         }
         settings = new Settings(settingPath);
@@ -185,6 +187,8 @@ void OpenFolderAndSelectFile(const WString& filePath)
             hr = shell->ParseDisplayName(NULL, NULL, sfdirpath, NULL, &idlist, NULL);
             if (FAILED(hr)) break;
             hr = PathCchRemoveFileSpec(sfdirpath, filePath.Length() + 1);
+            if (FAILED(hr)) break;
+            hr = PathCchRemoveBackslash(sfdirpath, filePath.Length() + 1);
             if (FAILED(hr)) break;
             hr = shell->ParseDisplayName(NULL, NULL, sfdirpath, NULL, &idfolder, NULL);
             if (FAILED(hr)) break;
