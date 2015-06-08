@@ -98,7 +98,7 @@ public:
             listBox->SetMultiSelect(false);
             listBox->ItemLeftButtonDoubleClick.AttachMethod(this, &NaiveSearchWindow::listBox_ItemLeftButtonDoubleClick);
             listBox->SetVerticalAlwaysVisible(false);
-            
+
             cell->AddChild(listBox->GetBoundsComposition());
         }
 
@@ -141,7 +141,7 @@ public:
             Settings::Default().Save();
 
         }
-        catch (...) { }
+        catch (...) {}
         GetApplication()->InvokeLambdaInMainThreadAndWait([=](){ this->Close(); }, 500);
     }
 
@@ -176,13 +176,13 @@ public:
         Show(false);
     }
 
-    void Show(bool showBorder)
+    void Show(bool showSizeBox)
     {
         auto app = GetApplication();
         if (app->IsInMainThread())
         {
             this->NaiveShow();
-            this->SetBorder(showBorder);
+            this->SetSizeBox(showSizeBox);
         }
         else
         {
@@ -228,13 +228,19 @@ public:
                 this->NaiveHide();
             }
         }
-#ifdef _DEBUG
-        else if (info.code == VKEY_S && IsContorlKeyClean(info, false, true)) //Ctrl+S
+        else if (info.code == VKEY_S)
         {
-            OpenFolderAndSelectFile(Settings::Default().SettingFilePath());
-            this->SetBorder(!this->GetBorder());
-        }
+            if (IsContorlKeyClean(info, false, true)) //Ctrl+S
+            {
+                this->SetSizeBox(!this->GetSizeBox());
+            }
+#ifdef _DEBUG
+            else if (IsContorlKeyClean(info, true,true)) //Ctrl+Alt+S
+            {
+                OpenFolderAndSelectFile(Settings::Default().SettingFilePath());
+            }
 #endif
+        }
         else if (info.code == VKEY_ESCAPE) //ESC
         {
             this->NaiveHide();
