@@ -13,6 +13,7 @@ private:
     DataSource * dataSource;
     GuiVirtualTextList* listBox;
     GuiSinglelineTextBox * searchBox;
+    GuiTableComposition * table;
     bool inputing = false;
 
     static inline bool IsContorlKeyClean(
@@ -55,7 +56,7 @@ public:
 
         this->SetBounds(Settings::Default().WindowBounds());
 
-        GuiTableComposition * table = new GuiTableComposition();
+        table = new GuiTableComposition();
         table->SetRowsAndColumns(2, 1);
         table->SetCellPadding(3);
         table->SetAlignmentToParent({ 0, 0, 0, 0 });
@@ -261,12 +262,9 @@ public:
         if (ret == HitTestResult::NoDecision)
         {
             auto bounds = this->GetNativeWindow()->GetClientBoundsInScreen();
-            bool isNear =
-                IsNear<16>(location.x, location.y, 0, 0) ||
-                IsNear<16>(location.x, location.y, bounds.Width(), 0) ||
-                IsNear<16>(location.x, location.y, 0, bounds.Height()) ||
-                IsNear<16>(location.x, location.y, bounds.Width(), bounds.Height());
-            if (isNear)
+            bool isInChild =
+                vl::collections::From(table->Children()).Any([=](GuiGraphicsComposition * c){ return c->GetBounds().Contains(location); });
+            if (!isInChild)
             {
                 ret = HitTestResult::Title;
             }
