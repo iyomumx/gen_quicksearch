@@ -5,6 +5,15 @@
 #include "WinampControl.h"
 #include "Settings.h"
 
+static inline bool IsContorlKeyClean(
+    const NativeWindowKeyInfo& info,
+    bool altstatus = false,
+    bool ctrlstatus = false,
+    bool shiftstatus = false)
+{
+    return (info.alt == altstatus && info.ctrl == ctrlstatus && info.shift == shiftstatus);
+}
+
 class NaiveSearchWindow sealed :
     public vl::presentation::controls::GuiWindow,
     public IPlugin
@@ -16,17 +25,10 @@ private:
     GuiTableComposition * table;
     bool inputing = false;
 
-    static inline bool IsContorlKeyClean(
-        const NativeWindowKeyInfo& info,
-        bool altstatus = false,
-        bool ctrlstatus = false,
-        bool shiftstatus = false)
-    {
-        return (info.alt == altstatus && info.ctrl == ctrlstatus && info.shift == shiftstatus);
-    }
-
     vl::Ptr<vl::presentation::INativeDelay> lastChangeDelay, refreshPLDelay;
     SearchWindowStartUpParam* p;
+
+#pragma region Show & Hide
 
     void NaiveHide()
     {
@@ -47,6 +49,9 @@ private:
         searchBox->SelectAll();
         searchBox->SetFocus();
     }
+
+#pragma endregion
+
 public:
 
     void InitializeComponents()
@@ -58,7 +63,7 @@ public:
 
         table = new GuiTableComposition();
         table->SetRowsAndColumns(2, 1);
-        table->SetCellPadding(3);
+        table->SetCellPadding(5);
         table->SetAlignmentToParent({ 0, 0, 0, 0 });
 
         table->SetRowOption(0, GuiCellOption::AbsoluteOption(26));
@@ -236,7 +241,7 @@ public:
                 this->SetSizeBox(!this->GetSizeBox());
             }
 #ifdef _DEBUG
-            else if (IsContorlKeyClean(info, true,true)) //Ctrl+Alt+S
+            else if (IsContorlKeyClean(info, true, true)) //Ctrl+Alt+S
             {
                 OpenFolderAndSelectFile(Settings::Default().SettingFilePath());
             }
