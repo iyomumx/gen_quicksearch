@@ -1,6 +1,7 @@
 #pragma once
+#include "WinampControl.h"
 
-void InitDefaultInstance();
+void InitDefaultInstance(IWinampController * wactrl);
 
 class Settings
 {

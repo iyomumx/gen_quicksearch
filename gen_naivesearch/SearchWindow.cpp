@@ -7,28 +7,15 @@ static SearchWindowStartUpParam * startp;
 
 DWORD WINAPI SearchWindowStart(LPVOID param)
 {
-    api_service * wasabisvc = NULL;
-    waServiceFactory * factory = NULL;
-
-    vl::Thread::Sleep(500);
-
-    startp = reinterpret_cast<SearchWindowStartUpParam*>(param);
-
-    wasabisvc = reinterpret_cast<api_service*>(
-        SendMessage(startp->Plugin->hwndParent, WM_WA_IPC, 0, IPC_GET_API_SERVICE));
-
-    factory = wasabisvc->service_getServiceByGuid(QueueManagerApiGUID);
-    if (factory != NULL)
-    {
-        startp->QueueApi = reinterpret_cast<api_queue*>(factory->getInterface());
-    }
-
+    vl::Thread::Sleep(1000);
+    startp = reinterpret_cast<SearchWindowStartUpParam *>(param);
+    startp->Controller = CreateController(startp->Plugin->hwndParent);
     return SetupWindowsDirect2DRenderer();
 }
 
 void GuiMain()
 {
-    InitDefaultInstance();
+    InitDefaultInstance(startp->Controller);
     try
     {
         Settings::Default().Reload();

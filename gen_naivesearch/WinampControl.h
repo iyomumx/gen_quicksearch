@@ -1,8 +1,14 @@
 #pragma once
 
-void PlayIndex(int index);
-void QueueIndex(api_queue * api, int index);
-wchar_t * GetPlayListFile(int index);
-wchar_t * GetPlayListTitle(int index);
-int GetListLength();
-wchar_t * GetPlayListDir();
+struct IWinampController
+{
+    virtual void PlayIndex(int index) = 0;
+    virtual void QueueIndex(int index) = 0;
+    virtual wchar_t * GetPlayListFile(int index) = 0;
+    virtual wchar_t * GetPlayListTitle(int index) = 0;
+    virtual int GetPlayListLength() = 0;
+    virtual wchar_t * GetPlayListDir() = 0;
+};
+
+IWinampController * CreateController(HWND wa_hwnd);
+void ReleaseController(IWinampController * controller);

@@ -1,4 +1,5 @@
 #pragma once
+#include "WinampControl.h"
 DWORD WINAPI SearchWindowStart(LPVOID);
 
 struct genHotkeysAddStruct {
@@ -44,9 +45,7 @@ public:
 struct SearchWindowStartUpParam
 {
     winampGeneralPurposePlugin * Plugin;
-    HANDLE ProcessHeap;
-    HWND SearchWindow;
     IPlugin * SearchPlugin;
-    api_queue * QueueApi;
-    LPVOID preserved;
+    HANDLE ProcessHeap;
+    IWinampController * Controller;
 };

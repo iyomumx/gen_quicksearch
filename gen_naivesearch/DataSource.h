@@ -1,4 +1,5 @@
 #pragma once
+#include "WinampControl.h"
 
 struct PlaylistItem
 {
@@ -42,8 +43,9 @@ protected:
         vl::WString StringFilter = L"";
         vl::regex::Regex * RegexFilter = nullptr;
     };
+    IWinampController * wactrl;
 public:
-    DataSource();
+    DataSource(IWinampController * controller);
     ~DataSource();
 
     DataSource(const DataSource&) = delete;
@@ -59,7 +61,7 @@ public:
     bool ContainsPrimaryText(int itemIndex) override;
 
     int TranslateIndex(int index);
-    void UpdatePlaylist(HWND wa_window);
+    void UpdatePlaylist();
     void UpdateFilter(vl::regex::Regex* regex);
     void UpdateFilter(const vl::WString& par);
     void UpdateView();

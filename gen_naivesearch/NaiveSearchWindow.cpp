@@ -26,7 +26,8 @@ private:
     bool inputing = false;
 
     vl::Ptr<vl::presentation::INativeDelay> lastChangeDelay, refreshPLDelay;
-    SearchWindowStartUpParam* p;
+
+    IWinampController * wactrl;
 
 #pragma region Show & Hide
 
@@ -95,7 +96,7 @@ public:
             table->AddChild(cell);
             cell->SetSite(1, 0, 1, 1);
 
-            dataSource = new DataSource;
+            dataSource = new DataSource(wactrl);
             this->OnListRefresh();
 
             listBox = new GuiVirtualTextList(GetCurrentTheme()->CreateTextListStyle(), GetCurrentTheme()->CreateTextListItemStyle(), dataSource);
@@ -122,11 +123,11 @@ public:
     }
 
     NaiveSearchWindow(SearchWindowStartUpParam * param)
-        : vl::presentation::controls::GuiWindow(GetCurrentTheme()->CreateWindowStyle()),
-        p(param)
+        : vl::presentation::controls::GuiWindow(GetCurrentTheme()->CreateWindowStyle())
     {
+        wactrl = param->Controller;
+        param->SearchPlugin = this;
         InitializeComponents();
-        p->SearchPlugin = this;
     }
 
 #pragma region IPlugin
@@ -167,7 +168,7 @@ public:
         }
         refreshPLDelay = GetApplication()->DelayExecute([=]()
         {
-            dataSource->UpdatePlaylist(p->Plugin->hwndParent);
+            dataSource->UpdatePlaylist();
         }, 200);
     }
 #pragma endregion
@@ -205,7 +206,7 @@ public:
             {
                 index = 0;
             }
-            PlayIndex(dataSource->TranslateIndex(index));
+            wactrl->PlayIndex(dataSource->TranslateIndex(index));
             this->NaiveHide();
         }
         else if (info.code == VKEY_TAB && IsContorlKeyClean(info)) //Tab
@@ -223,14 +224,14 @@ public:
         }
         else if (info.code == VKEY_Q && IsContorlKeyClean(info)) //Q
         {
-            if (p->QueueApi && !inputing)
+            if (!inputing)
             {
                 auto index = listBox->GetSelectedItemIndex();
                 if (index == -1)
                 {
                     index = 0;
                 }
-                QueueIndex(p->QueueApi, dataSource->TranslateIndex(index));
+                wactrl->QueueIndex(dataSource->TranslateIndex(index));
                 this->NaiveHide();
             }
         }
@@ -288,7 +289,7 @@ public:
 
     void listBox_ItemLeftButtonDoubleClick(GuiGraphicsComposition* sender, GuiItemMouseEventArgs& e)
     {
-        PlayIndex(dataSource->TranslateIndex(listBox->GetSelectedItemIndex()));
+        wactrl->PlayIndex(dataSource->TranslateIndex(listBox->GetSelectedItemIndex()));
     }
 
     void searchBox_TextChanged(GuiGraphicsComposition* sender, GuiEventArgs& e)

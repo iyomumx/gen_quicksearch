@@ -7,14 +7,14 @@ static Ptr<Settings> settings = 0;
 class NullOnFailSettings
 {
 public:
-    static bool InitInstance()
+    static bool InitInstance(IWinampController * wactrl)
     {
         static int retry = 0;
         WCHAR datadir[MAX_PATH + 1] = { 0 }, *settingPath = datadir, *pld;
-        pld = GetPlayListDir();
+        pld = wactrl->GetPlayListDir();
         if (pld)
         {
-            StringCbCopyW(datadir, sizeof(datadir), GetPlayListDir());
+            StringCbCopyW(datadir, sizeof(datadir), wactrl->GetPlayListDir());
             PathAllocCombine(datadir, L"plugins\\gen_naivesearch.setting", 0, &settingPath);
         }
         else if (retry < 5)
@@ -28,11 +28,11 @@ public:
     }
 };
 
-void InitDefaultInstance()
+void InitDefaultInstance(IWinampController * wactrl)
 {
-    if (!settings && !NullOnFailSettings::InitInstance())
+    if (!settings && !NullOnFailSettings::InitInstance(wactrl))
     {
-        GetApplication()->DelayExecute(&InitDefaultInstance, 500);
+        GetApplication()->DelayExecute(LAMBDA([=](){ InitDefaultInstance(wactrl); }), 500);
     }
 }
 

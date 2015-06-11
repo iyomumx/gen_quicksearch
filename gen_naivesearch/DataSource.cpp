@@ -1,11 +1,11 @@
 #include "stdafx.h"
-#include "DataSource.h"
 #include "WinampControl.h"
+#include "DataSource.h"
 
-DataSource::DataSource()
-    : playlist(MakePtr<vl::collections::List<PlaylistItem>>())
+DataSource::DataSource(IWinampController * controller)
+    : playlist(MakePtr<vl::collections::List<PlaylistItem>>()), wactrl(controller)
 {
-    
+
 }
 
 
@@ -75,23 +75,23 @@ int DataSource::TranslateIndex(int index)
     return playlist->IndexOf(viewlist[index]);
 }
 
-void DataSource::UpdatePlaylist(HWND wa_window)
+void DataSource::UpdatePlaylist()
 {
     auto app = GetApplication();
     if (app->IsInMainThread())
     {
-        app->InvokeAsync([=]() { this->UpdatePlaylist(wa_window); });
+        app->InvokeAsync([=]() { this->UpdatePlaylist(); });
     }
     else
     {
         Ptr<vl::collections::List<PlaylistItem>> temp =
             vl::MakePtr<vl::collections::List<PlaylistItem>>();
-        int count = GetListLength();
+        int count = wactrl->GetPlayListLength();
         for (int i = 0; i < count; i++)
         {
             PlaylistItem item(
-                GetPlayListTitle(i),
-                GetPlayListFile(i));
+                wactrl->GetPlayListTitle(i),
+                wactrl->GetPlayListFile(i));
             temp->Add(item);
         }
         app->InvokeLambdaInMainThreadAndWait([this, temp]()
