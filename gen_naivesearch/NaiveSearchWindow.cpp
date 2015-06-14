@@ -59,6 +59,9 @@ public:
     {
         this->SetTitleBar(false);
         this->SetTopMost(true);
+        this->SetMaximizedBox(false);
+        this->SetMinimizedBox(false);
+        
 
         this->SetBounds(Settings::Default().WindowBounds());
 
@@ -267,10 +270,14 @@ public:
         HitTestResult ret = GuiWindow::HitTest(location);
         if (ret == HitTestResult::NoDecision)
         {
-            auto bounds = this->GetNativeWindow()->GetClientBoundsInScreen();
+            auto client = table->GetBounds();
+            auto wb = this->GetBounds();
+            auto widthadj = (wb.Width() - client.Width()) / 2;
+            auto heightadj = (wb.Height() - client.Height()) / 2;
+            client.Move(widthadj, heightadj);
             bool isInChild =
-                vl::collections::From(table->Children()).Any([=](GuiGraphicsComposition * c){ return c->GetBounds().Contains(location); });
-            if (!isInChild)
+                vl::collections::From(table->Children()).Any(LAMBDA([=](GuiGraphicsComposition * c){ return c->GetBounds().Contains(location); }));
+            if (client.Contains(location) && !isInChild)
             {
                 ret = HitTestResult::Title;
             }
