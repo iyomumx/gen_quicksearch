@@ -114,12 +114,12 @@ public:
 
         this->GetNativeWindow()->HideInTaskBar();
         this->SetBorder(false);
-        GetApplication()->DelayExecuteInMainThread([this]()
+        GetApplication()->DelayExecuteInMainThread(LAMBDA([this]()
         {
             this->NaiveHide();
             this->Show();
             this->NaiveHide();
-        }, 50);
+        }), 50);
 #pragma region Window Events
         this->WindowLostFocus.AttachMethod(this, &NaiveSearchWindow::window_WindowLostFocus);
 #pragma endregion End Window Events
@@ -152,7 +152,7 @@ public:
 
         }
         catch (...) {}
-        GetApplication()->InvokeLambdaInMainThreadAndWait([=](){ this->Close(); }, 500);
+        GetApplication()->InvokeLambdaInMainThreadAndWait(LAMBDA([=](){ this->Close(); }), 500);
     }
 
     void OnHotkeyPressed() override
@@ -169,10 +169,10 @@ public:
                 refreshPLDelay->Cancel();
             }
         }
-        refreshPLDelay = GetApplication()->DelayExecute([=]()
+        refreshPLDelay = GetApplication()->DelayExecute(LAMBDA([=]()
         {
             dataSource->UpdatePlaylist();
-        }, 200);
+        }), 200);
     }
 #pragma endregion
 
@@ -196,7 +196,7 @@ public:
         }
         else
         {
-            app->InvokeLambdaInMainThread([=](){ this->Show(); });
+            app->InvokeLambdaInMainThread(LAMBDA([=](){ this->Show(); }));
         }
     }
 
@@ -324,10 +324,10 @@ public:
                     lastChangeDelay->Cancel();
                 }
             }
-            lastChangeDelay = GetApplication()->DelayExecuteInMainThread([=]()
+            lastChangeDelay = GetApplication()->DelayExecuteInMainThread(LAMBDA([=]()
             {
                 dataSource->UpdateFilter(searchBox->GetText());
-            }, 700);
+            }), 700);
         }
     }
 

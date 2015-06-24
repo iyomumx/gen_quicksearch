@@ -80,7 +80,7 @@ void DataSource::UpdatePlaylist()
     auto app = GetApplication();
     if (app->IsInMainThread())
     {
-        app->InvokeAsync([=]() { this->UpdatePlaylist(); });
+        app->InvokeAsync(LAMBDA([=]() { this->UpdatePlaylist(); }));
     }
     else
     {
@@ -94,11 +94,11 @@ void DataSource::UpdatePlaylist()
                 wactrl->GetPlayListFile(i));
             temp->Add(item);
         }
-        app->InvokeLambdaInMainThreadAndWait([this, temp]()
+        app->InvokeLambdaInMainThreadAndWait(LAMBDA([this, temp]()
         {
             playlist = temp;
             UpdateView();
-        });
+        }));
     }
 }
 
