@@ -33,7 +33,7 @@ struct genHotkeysAddStruct {
     }
 };
 
-class IPlugin
+class NOVTABLE IPlugin
 {
 public:
     virtual void OnConfig() { }

@@ -1,6 +1,6 @@
 #pragma once
 
-struct IWinampController
+struct NOVTABLE IWinampController
 {
     virtual void PlayIndex(int index) = 0;
     virtual void QueueIndex(int index) = 0;
