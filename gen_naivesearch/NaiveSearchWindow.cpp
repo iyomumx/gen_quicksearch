@@ -297,6 +297,7 @@ public:
     void listBox_ItemLeftButtonDoubleClick(GuiGraphicsComposition* sender, GuiItemMouseEventArgs& e)
     {
         wactrl->PlayIndex(dataSource->TranslateIndex(listBox->GetSelectedItemIndex()));
+        this->NaiveHide();
     }
 
     void searchBox_TextChanged(GuiGraphicsComposition* sender, GuiEventArgs& e)
