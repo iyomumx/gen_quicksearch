@@ -24,6 +24,8 @@ private:
     GuiSinglelineTextBox * searchBox;
     GuiTableComposition * table;
     bool inputing = false;
+    //may be in settings, one day
+    static const vl::vint InputReactionDelay = 500;
 
     vl::Ptr<vl::presentation::INativeDelay> lastChangeDelay, refreshPLDelay;
 
@@ -52,6 +54,16 @@ private:
     }
 
 #pragma endregion
+
+    void PlaySelected()
+    {
+        auto index = listBox->GetSelectedItemIndex();
+        if (index == -1)
+        {
+            index = 0;
+        }
+        wactrl->PlayIndex(dataSource->TranslateIndex(index));
+    }
 
 public:
 
@@ -204,12 +216,11 @@ public:
     {
         if (info.code == VKEY_RETURN && IsContorlKeyClean(info)) //Enter
         {
-            auto index = listBox->GetSelectedItemIndex();
-            if (index == -1)
+            if (lastChangeDelay->GetStatus() == INativeDelay::Pending)
             {
-                index = 0;
+                GetApplication()->DelayExecuteInMainThread(LAMBDA([=](){ this->PlaySelected(); }), InputReactionDelay);
             }
-            wactrl->PlayIndex(dataSource->TranslateIndex(index));
+            this->PlaySelected();
             this->NaiveHide();
         }
         else if (info.code == VKEY_TAB && IsContorlKeyClean(info)) //Tab
@@ -260,6 +271,7 @@ public:
     template <int r>
     static bool IsNear(const int& x1, const int& y1, const int& x2, const int& y2)
     {
+#pragma warning("Obsoleted")
         const int dx = x1 - x2;
         const int dy = y1 - y2;
         return dx * dx + dy * dy <= r * r;
@@ -327,7 +339,7 @@ public:
             lastChangeDelay = GetApplication()->DelayExecuteInMainThread(LAMBDA([=]()
             {
                 dataSource->UpdateFilter(searchBox->GetText());
-            }), 700);
+            }), InputReactionDelay);
         }
     }
 
