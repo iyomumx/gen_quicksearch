@@ -31,8 +31,8 @@ struct PlaylistItem
 };
 
 class DataSource :
-    public list::ItemProviderBase,
-    private list::TextItemStyleProvider::ITextItemView
+    public vl::presentation::controls::list::ItemProviderBase,
+    private vl::presentation::controls::list::TextItemStyleProvider::ITextItemView
 {
 protected:
     vl::Ptr<vl::collections::List<PlaylistItem>> playlist;
@@ -52,12 +52,12 @@ public:
     DataSource& operator=(const DataSource&) = delete;
 
     int Count() override;
-    IDescriptable* RequestView(const WString& identifier) override;
-    void ReleaseView(IDescriptable* view) override;
-    WString GetText(int itemIndex) override;
+    IDescriptable* RequestView(const vl::WString& identifier) override;
+    void ReleaseView(vl::reflection::IDescriptable* view) override;
+    vl::WString GetText(int itemIndex) override;
     bool GetChecked(int itemIndex) override;
     void SetCheckedSilently(int itemIndex, bool value) override;
-    WString GetPrimaryTextViewText(int itemIndex) override;
+    vl::WString GetPrimaryTextViewText(int itemIndex) override;
     bool ContainsPrimaryText(int itemIndex) override;
 
     int TranslateIndex(int index);

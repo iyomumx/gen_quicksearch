@@ -1,3 +1,3 @@
 #pragma once
 
-GuiWindow * CreateNaiveSearchWindow(SearchWindowStartUpParam * param);
+vl::presentation::controls::GuiWindow * CreateNaiveSearchWindow(SearchWindowStartUpParam * param);

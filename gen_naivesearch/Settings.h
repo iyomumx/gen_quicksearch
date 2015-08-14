@@ -8,7 +8,7 @@ class Settings
     friend class NullOnFailSettings;
 private:
     Rect _windowBounds = { 200, 200, 400, 600 };
-    Settings(const WString&);
+    Settings(const vl::WString&);
     WString settingPath;
 public:
     static Settings& Default();
@@ -16,11 +16,11 @@ public:
     void Reload();
     void Clear();
 
-    WString& SettingFilePath();
-    const WString& SettingFilePath() const;
+    vl::WString& SettingFilePath();
+    const vl::WString& SettingFilePath() const;
 
     Rect& WindowBounds();
     const Rect& WindowBounds() const;
 };
 
-void OpenFolderAndSelectFile(const WString& filePath);
+void OpenFolderAndSelectFile(const vl::WString& filePath);
