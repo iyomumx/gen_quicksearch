@@ -8,6 +8,7 @@ struct NOVTABLE IWinampController
     virtual wchar_t * GetPlayListTitle(int index) = 0;
     virtual int GetPlayListLength() = 0;
     virtual wchar_t * GetPlayListDir() = 0;
+    virtual RECT GetPLWindowRect() = 0;
 };
 
 IWinampController * CreateController(HWND wa_hwnd);

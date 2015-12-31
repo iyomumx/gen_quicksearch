@@ -90,6 +90,19 @@ public:
         return reinterpret_cast<wchar_t*>(
             SendMessage(this->hwnd, WM_WA_IPC, 0, IPC_GETM3UDIRECTORYW));
     }
+
+    RECT GetPLWindowRect() override
+    {
+        HWND h = reinterpret_cast<HWND>(SendMessage(this->hwnd, WM_WA_IPC, IPC_GETWND_PE, IPC_GETWND));
+        if (IsWindow(h) == FALSE)
+        {
+            h = this->hwnd;
+        }
+        //now h should be a vaild window
+        RECT ret = { 0 };
+        GetWindowRect(h, &ret);
+        return ret;
+    }
 };
 
 IWinampController * CreateController(HWND wa_hwnd)
